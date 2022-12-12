@@ -28,8 +28,8 @@
 #define _NSKPI_H_
 
 #include "config.h"
-#include "pi_common.h"
 #include "ocpn_plugin.h"
+#include "pi_common.h"
 
 #define MY_API_VERSION_MAJOR 1
 #define MY_API_VERSION_MINOR 18
@@ -131,19 +131,20 @@ public:
     /// Callback delivering NMEA messages from the core application
     ///
     /// \param sentence The NMEA 0183 message
-    void SetNMEASentence(wxString &sentence) override;
+    void SetNMEASentence(wxString& sentence) override;
 
     /// Callback delivering NMEA AIS messages from the core application
     ///
     /// \param sentence The NMEA 0183 message
-    void SetAISSentence(wxString &sentence) override;
+    void SetAISSentence(wxString& sentence) override;
 
     /// Callback delivering JSON messages from the core application
     ///
     /// \param message_id id of the message (We are interested at least in
     /// OCPN_CORE_SIGNAL, but there might be more to come) \param message_body
     /// The actual JSON message
-    void SetPluginMessage(wxString& message_id, wxString& message_body) override;
+    void SetPluginMessage(
+        wxString& message_id, wxString& message_body) override;
 
     /// Get Path to the plaugin data
     ///

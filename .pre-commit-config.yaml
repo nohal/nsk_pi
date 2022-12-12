@@ -14,8 +14,9 @@ repos:
       - id: clang-format
         exclude: |
             (?x)^(
-                src/NSKGUI.cpp|
-                include/NSKGUI.h
+                src/nsk.cpp|
+                include/nsk.h|
+                buildwin/.*
             )$
   - repo: https://github.com/cmake-lint/cmake-lint
     rev: 1.4.2

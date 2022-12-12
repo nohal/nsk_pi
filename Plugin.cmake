@@ -91,26 +91,13 @@ macro(late_init)
   configure_file(${CMAKE_SOURCE_DIR}/doc/contents.toml ${CMAKE_BINARY_DIR}/contents.toml)
 endmacro()
 
-include(FetchContent)
-
-FetchContent_Declare(
-  marnav
-  GIT_REPOSITORY https://github.com/mariokonrad/marnav.git
-  GIT_TAG master
-  CONFIGURE_COMMAND "caamake -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_TESTS_BENCHMARK=OFF -DENABLE_TOOLS=OFF"
-)
-set(ENABLE_EXAMPLES OFF)
-set(ENABLE_TESTS OFF)
-set(ENABLE_TESTS_BENCHMARK OFF)
-set(ENABLE_TOOLS OFF)
-FetchContent_MakeAvailable(marnav)
-
-include_directories("${marnav_SOURCE_DIR}/include")
-
 macro(add_plugin_libraries)
-  #add_subdirectory("opencpn-libs/wxJSON")
+  add_subdirectory("${CMAKE_SOURCE_DIR}/buildwin/marnav")
   target_link_libraries(${PACKAGE_NAME} marnav::marnav)
-  target_link_libraries(${PACKAGE_NAME} marnav::marnav-io)
+  if(NOT WIN32)
+    target_link_libraries(${PACKAGE_NAME} marnav::marnav-io)
+  endif()
+  include_directories(${MARNAV_INCLUDE_DIRS})
 endmacro()
 
 if(${WITH_TESTS})
