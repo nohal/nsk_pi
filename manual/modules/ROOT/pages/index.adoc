@@ -1,0 +1,17 @@
+:imagesdir: ../images/
+== Plugin NSK_pi
+
+image::nsk_pi_icon.png[NSK logo]
+
+=== Features
+
+The plugin provides a simple converter of NMEA 0183 messages to SIgnalK deltas.
+
+=== Installation
+
+Use the xref:installation.adoc[integrated plugin manager] to install the plugin.
+
+=== Links
+
+* Github project: https://github.com/nohal/nsk_pi +
+* Forum: http://www.cruisersforum.com/forums/f134/[OpenCPN support forum] +

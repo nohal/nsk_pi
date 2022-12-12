@@ -1,0 +1,6 @@
+[package]
+name = "NSKPlugin"
+
+[reference]
+type = "doxygen"
+dir = "docs/xml"

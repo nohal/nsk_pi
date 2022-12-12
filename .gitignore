@@ -1,0 +1,8 @@
+src/version.h
+build
+.DS_Store
+.idea
+cmake-build*
+./*.h
+./*.cpp
+.vscode
