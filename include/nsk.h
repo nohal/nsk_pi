@@ -218,10 +218,12 @@ public:
     /// @brief Return total number of SignalK deltas produced since start
     /// @return Number of deltas
     size_t SKTotal() { return m_sk_produced_total; };
-    /// @brief Return total number of unimplemented NMEA 0183 sentenced received since start
+    /// @brief Return total number of unimplemented NMEA 0183 sentenced received
+    /// since start
     /// @return Number of sentences
     size_t TotalUnimplemented() { return m_unimplemented_count; };
-    /// @brief Return total number of sentences not supported by Marnav received since start
+    /// @brief Return total number of sentences not supported by Marnav received
+    /// since start
     /// @return Number of sentences
     size_t TotalUnknown() { return m_nmea_errors; };
     /// @brief Load configuration from file
