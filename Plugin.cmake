@@ -63,10 +63,14 @@ add_definitions(-DRAPIDJSON_HAS_STDSTRING=1)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 set(HDR_N
-  #${CMAKE_SOURCE_DIR}/include/nsk.h
+  ${CMAKE_SOURCE_DIR}/include/nsk.h
+  ${CMAKE_SOURCE_DIR}/include/nskgui.h
+  ${CMAKE_SOURCE_DIR}/include/nskguiimpl.h
 )
 set(SRC_N
-  #${CMAKE_SOURCE_DIR}/src/nsk.cpp
+  ${CMAKE_SOURCE_DIR}/src/nsk.cpp
+  ${CMAKE_SOURCE_DIR}/src/nskgui.cpp
+  ${CMAKE_SOURCE_DIR}/src/nskguiimpl.cpp
 )
 
 set(SRC

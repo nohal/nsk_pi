@@ -28,6 +28,7 @@
 #define _NSKPI_H_
 
 #include "config.h"
+#include "nsk.h"
 #include "ocpn_plugin.h"
 #include "pi_common.h"
 
@@ -49,6 +50,8 @@ private:
     /// Path to the configuration file
     wxString m_config_file;
 
+    NSK m_nsk;
+
     /// Load the configuration from disk
     void LoadConfig();
 
@@ -59,18 +62,18 @@ public:
     explicit nsk_pi(void* ppimgr);
 
     /// Destructor
-    ~nsk_pi();
+    ~nsk_pi() override;
 
     //    The required PlugIn Methods
     /// Initialize the plugin
     ///
     /// \return
-    int Init();
+    int Init() override;
 
     /// Deinitialize the plugin
     ///
     /// \return
-    bool DeInit();
+    bool DeInit() override;
 
     /// Save the configuration to disk
     void SaveConfig();
@@ -78,39 +81,39 @@ public:
     /// Get major version of the plugin API the plugin requires
     ///
     /// \return Major version of the API
-    int GetAPIVersionMajor();
+    int GetAPIVersionMajor() override;
 
     /// Get minor version of the plugin API the plugin requires
     ///
     /// \return Minor version of the API
-    int GetAPIVersionMinor();
+    int GetAPIVersionMinor() override;
 
     /// Get major version of the plugin
     ///
     /// \return MAjor version of the plugin
-    int GetPlugInVersionMajor();
+    int GetPlugInVersionMajor() override;
 
     /// Get minor version of the plugin
     ///
     /// \return Minor version of the plugin
-    int GetPlugInVersionMinor();
+    int GetPlugInVersionMinor() override;
 
     /// Get bitmap icon of the plugin logo
     ///
     /// \return pointer to the bitmap containing the logo
-    wxBitmap* GetPlugInBitmap();
+    wxBitmap* GetPlugInBitmap() override;
 
     /// Get the name of the plugin
     ///
     /// \return Name of the plugin
-    wxString GetCommonName();
+    wxString GetCommonName() override;
 
     /// Get short description of the plugin
     /// The description should be a short single line text that fits the list
     /// view in the OpenCPN plugin manager tab of the Toolbox
     ///
     /// \return Short description of the plugin
-    wxString GetShortDescription();
+    wxString GetShortDescription() override;
 
     /// Get long description of the plugin
     ///
@@ -118,15 +121,15 @@ public:
     /// tile
     ///         in the OpenCPN plugin manager tab of the Toolbox once the plugin
     ///         is selected.
-    wxString GetLongDescription();
+    wxString GetLongDescription() override;
 
-    void ShowPreferencesDialog(wxWindow* parent);
+    void ShowPreferencesDialog(wxWindow* parent) override;
 
     /// Set color scheme the plugin should use
     /// Invoked when the core application color scheme is changed
     ///
     /// \param cs Color scheme
-    void SetColorScheme(PI_ColorScheme cs);
+    void SetColorScheme(PI_ColorScheme cs) override;
 
     /// Callback delivering NMEA messages from the core application
     ///

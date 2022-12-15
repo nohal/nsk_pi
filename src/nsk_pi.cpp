@@ -44,6 +44,7 @@
 #include <sstream>
 
 #include "nsk_pi.h"
+#include "nskguiimpl.h"
 #include <wx/filename.h>
 
 PLUGIN_BEGIN_NAMESPACE
@@ -142,8 +143,8 @@ wxString nsk_pi::GetLongDescription()
 
 void nsk_pi::ShowPreferencesDialog(wxWindow* parent)
 {
-    // TODO, for now we have no settings
-    wxMessageBox("TBD: Preferences dialog");
+    NSKPreferencesDialogImpl dlg(&m_nsk, parent);
+    dlg.ShowModal();
 }
 
 void nsk_pi::SetColorScheme(PI_ColorScheme cs)
@@ -154,11 +155,11 @@ void nsk_pi::SetColorScheme(PI_ColorScheme cs)
 
 void nsk_pi::LoadConfig()
 {
-    // TODO, for now we have no configuration
+    m_nsk.LoadConfig(GetDataDir().ToStdString() + "nsk.json");
 }
 void nsk_pi::SaveConfig()
 {
-    // TODO, for now we have no configuration
+    m_nsk.SaveConfig(GetDataDir().ToStdString() + "nsk.json");
 }
 
 void nsk_pi::SetNMEASentence(wxString& sentence)
@@ -166,113 +167,7 @@ void nsk_pi::SetNMEASentence(wxString& sentence)
     std::string stc = sentence.ToStdString();
     stc.erase(std::remove(stc.begin(), stc.end(), '\n'), stc.cend());
     stc.erase(std::remove(stc.begin(), stc.end(), '\r'), stc.cend());
-    try {
-        bool processed = true;
-        auto s = make_sentence(stc);
-        Document d;
-        d.SetObject();
-        rapidjson::Document::AllocatorType& allocator = d.GetAllocator();
-        // size_t sz = allocator.Size();
-        //  TODO (maybe, context is optional and we actually don't need it):
-        //  "context": "vessels.urn:mrn:imo:mmsi:234567890",
-        Value src(kObjectType);
-        Value upd(kObjectType);
-        Value values(kArrayType);
-        Value val(kObjectType);
-        src.AddMember("sentence", s->tag(), allocator);
-        src.AddMember("talker", to_string(s->get_talker()), allocator);
-        if (s->id() == sentence_id::RMC) {
-            auto rmc = sentence_cast<nmea::rmc>(s);
-            Value pos(kObjectType);
-
-            pos.AddMember("latitude", rmc->get_lat()->get(), allocator);
-            pos.AddMember("longitude", rmc->get_lon()->get(), allocator);
-
-            val.AddMember("path", "navigation.position", allocator);
-            val.AddMember("value", pos, allocator);
-            values.PushBack(val, allocator);
-            if (rmc->get_heading()) {
-                Value hdg(kObjectType);
-                hdg.AddMember("path", "navigation.headingTrue", allocator);
-                hdg.AddMember("value", deg2rad(*rmc->get_heading()), allocator);
-                values.PushBack(hdg, allocator);
-            }
-            if (rmc->get_sog()) {
-                Value sog(kObjectType);
-                sog.AddMember("path", "navigation.speedOverGround", allocator);
-                sog.AddMember(
-                    "value", kn2ms((*rmc->get_sog()).value()), allocator);
-                values.PushBack(sog, allocator);
-            }
-        } else if (s->id() == sentence_id::GSV) {
-            auto gsv = sentence_cast<nmea::gsv>(s);
-            val.AddMember("path", "navigation.gnss.satellites", allocator);
-            val.AddMember("value", gsv->get_n_satellites_in_view(), allocator);
-            values.PushBack(val, allocator);
-        } else if (s->id() == sentence_id::GLL) {
-            auto gll = sentence_cast<nmea::gll>(s);
-            Value pos(kObjectType);
-
-            pos.AddMember("latitude", gll->get_lat()->get(), allocator);
-            pos.AddMember("longitude", gll->get_lon()->get(), allocator);
-
-            val.AddMember("path", "navigation.position", allocator);
-            val.AddMember("value", pos, allocator);
-            values.PushBack(val, allocator);
-            /*} else if (s->id() == sentence_id::GSA) {
-                auto gsa = sentence_cast<nmea::gsa>(s);
-                Value pos(kObjectType);
-
-                //TODO
-
-                val.AddMember("path", "navigation.position", allocator);
-                val.AddMember("value", pos, allocator);
-                values.PushBack(val, allocator);
-            } else if (s->id() == sentence_id::GGA) {
-                auto gga = sentence_cast<nmea::gga>(s);
-                Value pos(kObjectType);
-
-                //TODO
-
-                val.AddMember("path", "navigation.position", allocator);
-                val.AddMember("value", pos, allocator);
-                values.PushBack(val, allocator);
-            } else if (s->id() == sentence_id::VTG) {
-                auto vtg = sentence_cast<nmea::vtg>(s);
-                Value pos(kObjectType);
-
-                //TODO
-
-                val.AddMember("path", "navigation.position", allocator);
-                val.AddMember("value", pos, allocator);
-                values.PushBack(val, allocator);*/
-        } else {
-            // TODO: And all the other sentences
-            // Unknown sentence
-            // std::cout << "Unprocessed: " << sentence.c_str() << std::endl;
-            processed = false;
-        }
-
-        if (processed) {
-            Value updates(kArrayType);
-            src.AddMember("label", "NSK", allocator);
-            src.AddMember("type", "NMEA0183", allocator);
-            upd.AddMember("source", src, allocator);
-            upd.AddMember("timestamp", currentISO8601TimeUTC(), allocator);
-            upd.AddMember("values", values, allocator);
-            updates.PushBack(upd, allocator);
-            d.AddMember("updates", updates, allocator);
-            StringBuffer buffer;
-            Writer<StringBuffer> writer(buffer);
-            d.Accept(writer);
-            std::cout << buffer.GetString() << std::endl;
-            SendPluginMessage("NSK_SIGNALK", buffer.GetString());
-        }
-    } catch (...) {
-        // std::cout << "Exception while processing " << sentence.c_str() <<
-        // std::endl;
-        return;
-    }
+    m_nsk.ProcessNMEASentence(stc);
 }
 
 void nsk_pi::SetAISSentence(wxString& sentence)

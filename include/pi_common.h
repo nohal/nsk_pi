@@ -42,35 +42,6 @@
 #define PLUGIN_BEGIN_NAMESPACE namespace PLUGIN_NAMESPACE {
 #define PLUGIN_END_NAMESPACE }
 
-// For OpenGL
-/*
-extern "C" {
-
-#ifdef __WXGTK__
-#include "GL/gl.h"
-#include "GL/glext.h"
-#include "GL/glu.h"
-#elif __WXMAC__
-#include <OpenGL/gl3.h> // from ..../Frameworks/OpenGL.framework/Headers/gl.h
-#define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
-#elif __WXQT__
-// TODO
-#else
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#ifdef _MSC_VER
-#pragma comment(lib, "Ws2_32.lib")
-#endif
-#include <windows.h>
-#define GL_GLEXT_LEGACY
-#include <GL/gl.h>
-#include <GL/glu.h>
-//#include <opengl/GL/glext.h>
-#include <GL/glext.h>
-#endif
-
-} // end "extern C"
-*/
 #include <wx/wxprec.h>
 #ifdef __WXOSX__
 #pragma clang diagnostic push
@@ -83,7 +54,7 @@ extern "C" {
 #pragma clang diagnostic pop
 #endif
 
-#include <stdint.h>
+#include <cstdint>
 #include <wx/translation.h>
 
 #include <fstream>
@@ -111,7 +82,7 @@ using namespace std;
 #ifdef __WXMSW__
 #define SOCKETERRSTR (strerror(WSAGetLastError()))
 #else
-#include <errno.h>
+#include <cerrno>
 #define SOCKETERRSTR (strerror(errno))
 #define closesocket(fd) close(fd)
 #endif
