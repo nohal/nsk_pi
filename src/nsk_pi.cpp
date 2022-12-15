@@ -56,19 +56,6 @@ using namespace rapidjson;
 using namespace marnav;
 using namespace nmea;
 
-/**
- * Generate a UTC ISO8601-formatted timestamp
- * and return as std::string
- */
-std::string currentISO8601TimeUTC()
-{
-    auto now = std::chrono::system_clock::now();
-    auto itt = std::chrono::system_clock::to_time_t(now);
-    std::ostringstream ss;
-    ss << std::put_time(gmtime(&itt), "%FT%TZ");
-    return ss.str();
-}
-
 // the class factories, used to create and destroy instances of the PlugIn
 
 extern "C" DECL_EXP opencpn_plugin* create_pi(void* ppimgr)
