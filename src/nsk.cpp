@@ -26,8 +26,8 @@
 
 #include "rapidjson/document.h"
 #include "rapidjson/istreamwrapper.h"
-#include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
 #include <fstream>
 
 #include <chrono>
@@ -78,7 +78,7 @@ void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::gga> s,
         val.AddMember("value", pos, allocator);
         values_array.PushBack(val, allocator);
     }
-    if(s->get_time().has_value()) {
+    if (s->get_time().has_value()) {
         Value utc(kObjectType);
         utc.AddMember("path", "environment.time", allocator);
         utc.AddMember("value", to_string(s->get_time()), allocator);
@@ -118,7 +118,7 @@ void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::gsa> s,
         val.AddMember("value", s->get_pdop().value(), allocator);
         values_array.PushBack(val, allocator);
     }
-    //TODO: There is more info available
+    // TODO: There is more info available
 }
 
 void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::gsv> s,
@@ -135,7 +135,7 @@ void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::rmc> s,
     rapidjson::Value& values_array,
     rapidjson::Document::AllocatorType& allocator)
 {
-    if(s->get_lat().has_value() && s->get_lon().has_value()) {
+    if (s->get_lat().has_value() && s->get_lon().has_value()) {
         Value val(kObjectType);
         Value pos(kObjectType);
         pos.AddMember("latitude", s->get_lat()->get(), allocator);
@@ -156,7 +156,7 @@ void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::rmc> s,
         sog.AddMember("value", kn2ms((*s->get_sog()).value()), allocator);
         values_array.PushBack(sog, allocator);
     }
-    if(s->get_time_utc().has_value()) {
+    if (s->get_time_utc().has_value()) {
         Value utc(kObjectType);
         utc.AddMember("path", "navigation.datetime", allocator);
         utc.AddMember("value", to_string(s->get_time_utc()), allocator);
@@ -247,7 +247,9 @@ void NSK::ProcessNMEASentence(const std::string& stc)
                 m_unimplemented.emplace(s->tag());
                 processed = false;
             }
-            if(values.Empty()) { //Processing this known sentence did not yield any values (Probably we don't have a fix)
+            if (values
+                    .Empty()) { // Processing this known sentence did not yield
+                                // any values (Probably we don't have a fix)
                 processed = false;
                 ++m_ignored;
             }
@@ -269,7 +271,7 @@ void NSK::ProcessNMEASentence(const std::string& stc)
             StringBuffer buffer;
             Writer<StringBuffer> writer(buffer);
             d.Accept(writer);
-            //std::cout << buffer.GetString() << std::endl;
+            // std::cout << buffer.GetString() << std::endl;
             ++m_sk_produced;
             ++m_sk_produced_total;
             SendPluginMessage("NSK_PI_SIGNALK", buffer.GetString());
@@ -277,34 +279,36 @@ void NSK::ProcessNMEASentence(const std::string& stc)
     } catch (...) {
         // std::cout << "Exception while processing " << sentence.c_str() <<
         // std::endl;
-        m_unknown.emplace(stc.substr(0,6));
+        m_unknown.emplace(stc.substr(0, 6));
         ++m_nmea_errors;
         return;
     }
 }
 
-void NSK::LoadConfig(const std::string& path) {
+void NSK::LoadConfig(const std::string& path)
+{
     std::ifstream ifs { path };
-    if ( !ifs.is_open() )
-    {
+    if (!ifs.is_open()) {
         std::cout << "Can't open the JSON file!" << std::endl;
         return;
-        //throw std::runtime_error ("Can't open the JSON file!");
+        // throw std::runtime_error ("Can't open the JSON file!");
     }
 
     rapidjson::IStreamWrapper isw { ifs };
 
     Document d {};
-    d.ParseStream( isw );
+    d.ParseStream(isw);
     if (d.HasMember("known_sentences") && d["known_sentences"].IsArray()) {
         m_known.clear();
         for (auto& stc : d["known_sentences"].GetArray()) {
-            m_known.emplace(known_sentence(stc["talker_tag"].GetString(), stc["enabled"].GetBool()));
+            m_known.emplace(known_sentence(
+                stc["talker_tag"].GetString(), stc["enabled"].GetBool()));
         }
     }
 }
 
-void NSK::SaveConfig(const std::string& path) {
+void NSK::SaveConfig(const std::string& path)
+{
     Document d;
     d.SetObject();
     Value values(kArrayType);
@@ -318,14 +322,15 @@ void NSK::SaveConfig(const std::string& path) {
     d.AddMember("known_sentences", values, allocator);
 
     rapidjson::StringBuffer buf;
-    rapidjson::Writer<StringBuffer> writer (buf);
+    rapidjson::Writer<StringBuffer> writer(buf);
     d.Accept(writer);
 
-    std::ofstream of (path);
+    std::ofstream of(path);
     of << buf.GetString();
     if (!of.good()) {
         std::cout << "Can't write the JSON string to the file!" << std::endl;
-        //throw std::runtime_error ("Can't write the JSON string to the file!");
+        // throw std::runtime_error ("Can't write the JSON string to the
+        // file!");
     }
 }
 
