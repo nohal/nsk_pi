@@ -5,11 +5,61 @@ image::nsk_pi_icon.png[NSK logo]
 
 === Features
 
-The plugin provides a simple converter of NMEA 0183 messages to SIgnalK deltas.
+The plugin provides a simple converter of NMEA 0183 messages to https://signalk.org[Signal K] delta messages.
+
+The main purpose of this plugin is to serve as a companion to the https://nohal.github.io/dashboardsk_pi/[DashboardSK] plugin in systems where Signal K data is not normally available. A real Signal K server does and always will provide a much richer feature set and is the preferable way to integrate the onboard systems and serve the data to OpenCPN, it's DashboardSK plugin or any other client.
 
 === Installation
 
-Use the xref:installation.adoc[integrated plugin manager] to install the plugin.
+* Open the OpenCPN `Toolbox` by clicking on the cogwheel icon in the main toolbar
+* Navigate to the `Plugins` tab
+* Update the plugin catalog using the button on the bottom
+* Find the `NSK`` tile in the list of available plugins and click on it
+* In the presented dialog click the `Install` button
+
+Once the plugin is enabled, it immediately starts converting all the NMEA 0183 sentences it knows to Signal K delta messages and passes them to the OpenCPN core application where they are forwarded to other plugins.
+
+=== Configuration
+
+* To access the plugin's statistics and preferences dialog, navigate to the `Plugins`tab in the `Toolbox`, select the `NSK` and click on the `Preferences` button.
+
+The dialog offers a basic performance statistics and allows disabling conversion for some of the sentences delivered in the NMEA 0183 data feed.
+
+image::preferences.png[Preferences dialog]
+
+1. Performance statistics
+2. Known NMEA 0183 sentences being converted to Signal K deltas. Uncheck the checkbox to stop converting the particular message.
+3. NMEA 0183 sentences present in the feed, known to the MarNav library, but not yet implemented by the NSK plugin
+4. NMEA 0183 sentences not recognized by the MarNav library
+5. If you click the `OK` button, the settings for the sentences are persisted. On `Cancel` the configuration is reverted to it's previous state.
+
+=== Extending the plugin
+
+The primary goal of this plugin is to be as simple as possible both for the user and for anybody willing to extend it's capabilities. A converter for an NMEA 0183 sentence is as simple as
+
+```C++
+void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::gll> s,
+    rapidjson::Value& values_array,
+    rapidjson::Document::AllocatorType& allocator)
+{
+    Value val(kObjectType);
+    Value pos(kObjectType);
+    if (s->get_lat().has_value() && s->get_lon().has_value()) {
+        pos.AddMember("latitude", s->get_lat()->get(), allocator);
+        pos.AddMember("longitude", s->get_lon()->get(), allocator);
+
+        val.AddMember("path", "navigation.position", allocator);
+        val.AddMember("value", pos, allocator);
+        values_array.PushBack(val, allocator);
+    }
+}
+```
+
+More information about extending the plugin can be found in it's https://github.com/nohal/nsk_pi#readme[source code] repository.
+
+=== Credits
+
+This plugin would not be possible without Mario Konrad's excellent https://github.com/mariokonrad/marnav[MarNav] library doing the dirty work of parsing the NMEA 0183 sentences.
 
 === Links
 

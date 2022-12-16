@@ -33,7 +33,7 @@ To make this as simple as possible, a [pre-commit](https://pre-commit.com) confi
 
 ```bash
 pip3 install pre-commit
-cd <n_sk source directory>
+cd <nsk_pi source directory>
 pre-commit install
 ```
 
@@ -70,3 +70,52 @@ To execute the tests, simply run `ctest` in the build directory.
 ### Sanitizers support
 
 To configure the build to enable sanitizer support, run cmake with `-DSANITIZE=<comma separated list of sanitizers>, eg. `cmake -DSANITIZE=address ..` to enable the adderess sanitizer reporting memory leaks.
+
+### Adding a new instrument
+
+- Add the respective MarNav header file include directive to [nsk.h](https://github.com/nohal/nsk_pi/blob/main/include/nsk.h#L37)
+
+```C++
+#include <marnav/nmea/gll.hpp>
+```
+
+- Declare the processing function in [nsk.h](https://github.com/nohal/nsk_pi/blob/main/include/nsk.h#L126)
+
+```C++
+void ProcessSentence(std::unique_ptr<marnav::nmea::gll> s,
+      rapidjson::Value& values_array,
+      rapidjson::Document::AllocatorType& allocator);
+```
+
+- Implement the converter function in [nsk.cpp](https://github.com/nohal/nsk_pi/blob/main/src/nsk.cpp#L89)
+
+```C++
+void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::gll> s,
+    rapidjson::Value& values_array,
+    rapidjson::Document::AllocatorType& allocator)
+{
+    Value val(kObjectType);
+    Value pos(kObjectType);
+    if (s->get_lat().has_value() && s->get_lon().has_value()) {
+        pos.AddMember("latitude", s->get_lat()->get(), allocator);
+        pos.AddMember("longitude", s->get_lon()->get(), allocator);
+
+        val.AddMember("path", "navigation.position", allocator);
+        val.AddMember("value", pos, allocator);
+        values_array.PushBack(val, allocator);
+    }
+}
+```
+
+- Add a `case` for the newly implemented sentence to the `switch` in `NSK::ProcessNMEASentence(const std::string& stc)` in [nsk.cpp](https://github.com/nohal/nsk_pi/blob/main/src/nsk.cpp)
+
+```C++
+case sentence_id::GLL:
+    ProcessSentence(sentence_cast<nmea::gll>(s), values, allocator);
+    break;
+```
+
+- Build and enjoy
+- Write tests
+- Do not forget to run `clang-format` in case you for some reason do not use `pre-commit` recommended above
+- Create a pull request on Github to share your work with the world
