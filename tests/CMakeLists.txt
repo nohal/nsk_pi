@@ -24,17 +24,27 @@ FetchContent_MakeAvailable(Catch2)
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${Catch2_SOURCE_DIR}/extras")
 
 set( SOURCES_TESTS
+        opencpn_mock.h
+        utils.h
+        001-gll.cpp
         ${SRC_N} )
 
-include_directories("${CMAKE_SOURCE_DIR}/include")
+include_directories("${CMAKE_SOURCE_DIR}/include" ${wxWidgets_INCLUDE_DIR})
 
 add_executable(tests ${SOURCES_TESTS})
     target_link_libraries(tests ${wxWidgets_LIBRARIES})
-endif()
 target_link_libraries(tests Catch2::Catch2WithMain)
 
 add_subdirectory("opencpn-libs/${PKG_API_LIB}")
 target_link_libraries(tests ocpn::api)
+
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/marnav")
+target_link_libraries(tests marnav::marnav)
+if(NOT WIN32)
+  target_link_libraries(tests marnav::marnav-io)
+endif()
+include_directories(${MARNAV_INCLUDE_DIRS})
+
 
 include(CTest)
 include(Catch)

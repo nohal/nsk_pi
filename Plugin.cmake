@@ -102,13 +102,12 @@ macro(add_plugin_libraries)
     target_link_libraries(${PACKAGE_NAME} marnav::marnav-io)
   endif()
   include_directories(${MARNAV_INCLUDE_DIRS})
+  if(${WITH_TESTS})
+    include(CTest)
+    add_subdirectory("${CMAKE_SOURCE_DIR}/tests")
+    add_dependencies(${CMAKE_PROJECT_NAME} tests)
+  endif()
 endmacro()
-
-if(${WITH_TESTS})
-  include(CTest)
-  add_subdirectory("${CMAKE_SOURCE_DIR}/tests")
-  add_dependencies(${CMAKE_PROJECT_NAME} tests)
-endif()
 
 add_custom_target(doxygen-docs
   COMMAND doxygen
