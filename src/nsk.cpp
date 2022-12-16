@@ -195,7 +195,8 @@ void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::vtg> s,
 
 // --- End of sentence processing implementations
 
-void NSK::ProcessNMEASentence(const std::string& stc, rapidjson::Document* outdoc)
+void NSK::ProcessNMEASentence(
+    const std::string& stc, rapidjson::Document* outdoc)
 {
     if (chrono::system_clock::now() - m_counters_start > 5s) {
         m_counters_start = chrono::system_clock::now();
@@ -274,7 +275,7 @@ void NSK::ProcessNMEASentence(const std::string& stc, rapidjson::Document* outdo
             // std::cout << buffer.GetString() << std::endl;
             ++m_sk_produced;
             ++m_sk_produced_total;
-            if(outdoc != nullptr) {
+            if (outdoc != nullptr) {
                 outdoc->Parse<0>(buffer.GetString());
             }
             SendPluginMessage("NSK_PI_SIGNALK", buffer.GetString());

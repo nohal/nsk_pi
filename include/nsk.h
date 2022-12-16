@@ -168,8 +168,10 @@ public:
         , m_counters_start(std::chrono::system_clock::now()) {};
     /// @brief Process NMEA 0183 sentence string
     /// @param stc NMEA 0183 sentence without the trailing "\r\n"
-    /// @param outdoc Pointer to a JSON document to which the resulting JSON Document is copied (usefull for testing)
-    void ProcessNMEASentence(const std::string& stc, rapidjson::Document* outdoc = nullptr);
+    /// @param outdoc Pointer to a JSON document to which the resulting JSON
+    /// Document is copied (usefull for testing)
+    void ProcessNMEASentence(
+        const std::string& stc, rapidjson::Document* outdoc = nullptr);
     /// @brief Get the current rate of incoming NMEA sentences
     /// @return Sentences/second
     size_t NMEARate()
