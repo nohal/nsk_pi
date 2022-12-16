@@ -119,3 +119,9 @@ case sentence_id::GLL:
 - Write tests
 - Do not forget to run `clang-format` in case you for some reason do not use `pre-commit` recommended above
 - Create a pull request on Github to share your work with the world
+
+## Credits
+
+- This plugin would not be possible without Mario Konrad's excellent https://github.com/mariokonrad/marnav[MarNav] library doing the dirty work of parsing the NMEA 0183 sentences.
+- Thanks to Alec Leamas, Mike Rossiter, Kees Verruijt, Jon Gough and others from whose plugin related work this plugin reuses bits and pieces.
+- Thanks to Dave for OpenCPN
