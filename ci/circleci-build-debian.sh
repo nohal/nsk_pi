@@ -66,7 +66,7 @@ here=$(cd $(dirname $0); pwd -P)
 if [ -f ~/.config/local-build.rc ]; then source ~/.config/local-build.rc; fi
 if [ -d /ci-source ]; then cd /ci-source; fi
 
-git submodule update --init opencpn-libs
+git submodule update --init
 
 # Set up build directory and a visible link in /
 builddir=build-$OCPN_TARGET

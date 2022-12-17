@@ -22,7 +22,7 @@ else
 fi
 
 cd $ci_source
-git submodule update --init opencpn-libs
+git submodule update --init
 
 cat > $ci_source/build.sh << "EOF"
 function remove_wx30() {
