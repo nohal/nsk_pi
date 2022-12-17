@@ -31,8 +31,6 @@ finish-args:
     - --device=all
 
 modules:
-    - @include opencpn-libs/flatpak/glu.yaml
-
     - name: @app_id
       no-autogen: true
       buildsystem: cmake
