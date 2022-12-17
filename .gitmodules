@@ -1,3 +1,6 @@
 [submodule "opencpn-libs"]
 	path = opencpn-libs
 	url = https://github.com/nohal/opencpn-libs.git
+[submodule "libs/marnav"]
+	path = libs/marnav
+	url = https://github.com/nohal/marnav.git

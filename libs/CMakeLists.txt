@@ -28,27 +28,29 @@ project(marnav_marnav)
 if(WIN32)
   add_library(marnav_if INTERFACE)
   add_library(marnav::marnav ALIAS marnav_if)
-  set(MARNAV_LIBRARY ${CMAKE_CURRENT_LIST_DIR}/win32/lib/marnav.lib)
-  set(MARNAV_INCLUDE_DIRS ${CMAKE_CURRENT_LIST_DIR}/win32/include
-    CACHE STRING "Windows marnav headers directory"
+  set(MARNAV_LIBRARY ${CMAKE_SOURCE_DIR}/buildwin/marnav/win32/lib/marnav.lib PARENT_SCOPE)
+  set(MARNAV_INCLUDE_DIRS ${CMAKE_CURRENT_LIST_DIR}/marnav/include
+        CACHE STRING "Windows marnav headers directory" PARENT_SCOPE
   )
   target_link_libraries(marnav_if INTERFACE ${MARNAV_LIBRARY})
   target_include_directories(marnav_if INTERFACE  ${MARNAV_INCLUDE_DIRS})
 else()
-  include(FetchContent)
+  #include(FetchContent)
 
-  FetchContent_Declare(
-    marnav
-    GIT_REPOSITORY https://github.com/mariokonrad/marnav.git
-    GIT_TAG master
-  )
+  #FetchContent_Declare(
+  #  marnav
+  #  GIT_REPOSITORY https://github.com/mariokonrad/marnav.git
+  #  GIT_TAG master
+  #)
   set(ENABLE_STATIC ON)
   set(BUILD_SHARED_LIBS FALSE)
   set(ENABLE_EXAMPLES OFF)
   set(ENABLE_TESTS OFF)
   set(ENABLE_TESTS_BENCHMARK OFF)
   set(ENABLE_TOOLS OFF)
-  FetchContent_MakeAvailable(marnav)
+  #FetchContent_MakeAvailable(marnav)
 
-  set(MARNAV_INCLUDE_DIRS "${marnav_SOURCE_DIR}/include")
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/marnav)
+
+  set(MARNAV_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/marnav/include" PARENT_SCOPE)
 endif()

@@ -96,7 +96,7 @@ macro(late_init)
 endmacro()
 
 macro(add_plugin_libraries)
-  add_subdirectory("${CMAKE_SOURCE_DIR}/buildwin/marnav")
+  add_subdirectory("${CMAKE_SOURCE_DIR}/libs")
   target_link_libraries(${PACKAGE_NAME} marnav::marnav)
   if(NOT WIN32)
     target_link_libraries(${PACKAGE_NAME} marnav::marnav-io)
