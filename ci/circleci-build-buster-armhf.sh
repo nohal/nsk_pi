@@ -30,7 +30,7 @@ else
 fi
 
 cd $ci_source
-git submodule update --init
+git submodule update --init --recursive
 
 cat > $ci_source/build.sh << "EOF"
 

@@ -16,7 +16,7 @@ set -xe
 # Load local environment if it exists i. e., this is a local build
 if [ -f ~/.config/local-build.rc ]; then source ~/.config/local-build.rc; fi
 
-git submodule update --init
+git submodule update --init --recursive
 
 # Set up build directory
 if [ -n "$TRAVIS_BUILD_DIR" ]; then cd $TRAVIS_BUILD_DIR; fi
