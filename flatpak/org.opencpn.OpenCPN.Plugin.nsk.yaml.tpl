@@ -31,6 +31,7 @@ finish-args:
     - --device=all
 
 modules:
+    - @include libs/flatpak/marnav.yaml
     - name: @app_id
       no-autogen: true
       buildsystem: cmake

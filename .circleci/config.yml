@@ -192,43 +192,41 @@ jobs:
         default: "fp-x86-20-v2"
     <<: *flatpak-steps
 
-  #build-macos:
-  #  macos:
-  #    xcode: "12.5.1"
-  #  environment:
-  #    - OCPN_TARGET: macos
-  #    - CMAKE_BUILD_PARALLEL_LEVEL: 2
-  #  steps:
-  #    - checkout
-  #    - run: ci/circleci-build-macos.sh
-  #    - run: >
-  #        sh -c "otool -L build-osx/app/*/OpenCPN.app/Contents/PlugIns/*.dylib"
-  #    - run: cd build-osx; /bin/bash < upload.sh
-  #    - run: ci/git-push.sh  build-osx
+  build-macos:
+    macos:
+      xcode: "12.5.1"
+    environment:
+      - OCPN_TARGET: macos
+      - CMAKE_BUILD_PARALLEL_LEVEL: 2
+    steps:
+      - checkout
+      - run: ci/circleci-build-macos.sh
+      - run: >
+          sh -c "otool -L build-osx/app/*/OpenCPN.app/Contents/PlugIns/*.dylib"
+      - run: cd build-osx; /bin/bash < upload.sh
+      - run: ci/git-push.sh  build-osx
 
-  #TODO: wxStyledTextCtrl does not exist in wxQT, so we would have to replace it.
-  #      And there will be more for sure.
-  #build-android-arm64:
-  #  docker:
-  #    - image: circleci/android:api-28-ndk
-  #  environment:
-  #    - OCPN_TARGET: android-aarch64
-  #    - CMAKE_BUILD_PARALLEL_LEVEL: 2
-  #  steps:
-  #    - checkout
-  #    - run: ci/circleci-build-android.sh
-  #    - run: ci/maybe-push-upload.sh
+  build-android-arm64:
+    docker:
+      - image: circleci/android:api-28-ndk
+    environment:
+      - OCPN_TARGET: android-aarch64
+      - CMAKE_BUILD_PARALLEL_LEVEL: 2
+    steps:
+      - checkout
+      - run: ci/circleci-build-android.sh
+      - run: ci/maybe-push-upload.sh
 
-  #build-android-armhf:
-  #  docker:
-  #    - image: circleci/android:api-28-ndk
-  #  environment:
-  #    - OCPN_TARGET: android-armhf
-  #    - CMAKE_BUILD_PARALLEL_LEVEL: 2
-  #  steps:
-  #    - checkout
-  #    - run: ci/circleci-build-android.sh
-  #    - run: ci/maybe-push-upload.sh
+  build-android-armhf:
+    docker:
+      - image: circleci/android:api-28-ndk
+    environment:
+      - OCPN_TARGET: android-armhf
+      - CMAKE_BUILD_PARALLEL_LEVEL: 2
+    steps:
+      - checkout
+      - run: ci/circleci-build-android.sh
+      - run: ci/maybe-push-upload.sh
 
 std-filters: &std-filters
   filters:
@@ -250,14 +248,14 @@ workflows:
       - build-flatpak-x86:
           <<: *std-filters
 
-#      - build-macos:
-#          <<: *std-filters
-#
-#      - build-android-arm64:
-#          <<: *std-filters
-#
-#      - build-android-armhf:
-#          <<: *std-filters
+      # - build-macos:
+      #   <<: *std-filters
+
+      - build-android-arm64:
+          <<: *std-filters
+
+      - build-android-armhf:
+          <<: *std-filters
 
       - build-bullseye-wx32:
           <<: *std-filters
