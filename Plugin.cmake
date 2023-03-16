@@ -37,7 +37,7 @@ set(PKG_VERSION "0.2.0")
 set(PKG_PRERELEASE "beta")  # Empty, or a tag like 'beta'
 
 set(DISPLAY_NAME NSK)    # Dialogs, installer artifacts, ...
-set(PLUGIN_API_NAME nsk_pi) # As of GetCommonName() in plugin API
+set(PLUGIN_API_NAME NSK) # As of GetCommonName() in plugin API
 set(PKG_SUMMARY "NMEA0183 to SignalK converter plugin for OpenCPN")
 set(PKG_DESCRIPTION [=[
   NMEA0183 to SignalK converter plugin for OpenCPN
