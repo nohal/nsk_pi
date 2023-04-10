@@ -34,7 +34,7 @@ set(OCPN_RELEASE_REPO
 #
 set(PKG_NAME NSK_pi)
 set(PKG_VERSION "0.2.0")
-set(PKG_PRERELEASE "beta")  # Empty, or a tag like 'beta'
+set(PKG_PRERELEASE "")  # Empty, or a tag like 'beta'
 
 set(DISPLAY_NAME NSK)    # Dialogs, installer artifacts, ...
 set(PLUGIN_API_NAME NSK) # As of GetCommonName() in plugin API
