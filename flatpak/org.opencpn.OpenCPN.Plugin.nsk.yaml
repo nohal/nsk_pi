@@ -13,6 +13,7 @@ finish-args:
   - --device=all
 
 modules:
+  - @include libs/flatpak/marnav.yaml
   - name: nsk
     no-autogen: true
     buildsystem: cmake
@@ -24,8 +25,8 @@ modules:
       - -DBUILD_TYPE:STRING=tarball
       - -Uplugin_target
     build-options:
-        cflags: -fPIC
-        cxxflags: -fPIC
+        cflags: -fPIC -I/app/extensions/nsk/include
+        cxxflags: -fPIC -I/app/extensions/nsk/include
         strip: true
     sources:
       - type: git
