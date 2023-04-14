@@ -22,7 +22,7 @@ else
 fi
 
 cd $ci_source
-git submodule update --init --recursive
+git submodule update --init opencpn-libs
 
 cat > $ci_source/build.sh << "EOF"
 

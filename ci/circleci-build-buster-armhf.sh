@@ -30,7 +30,7 @@ else
 fi
 
 cd $ci_source
-git submodule update --init --recursive
+git submodule update --init opencpn-libs
 
 cat > $ci_source/build.sh << "EOF"
 
@@ -52,7 +52,7 @@ apt install -y ./cmake_3.19.3-0.1_armhf.deb ./cmake-data_3.19.3-0.1_all.deb
 
 cd /ci-source
 rm -rf build-debian; mkdir build-debian; cd build-debian
-cmake -DCMAKE_BUILD_TYPE=Release -DOCPN_TARGET_TUPLE="debian;10;armhf" ..
+cmake "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE:-Release}" -DOCPN_TARGET_TUPLE="debian;10;armhf" ..
 make -j $(nproc) VERBOSE=1 tarball
 ldd  app/*/lib/opencpn/*.so
 chown --reference=.. .

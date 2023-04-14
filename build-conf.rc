@@ -11,9 +11,6 @@ oldstable_upload="false"
 oldstable_git_push="false"
 
 # Same as for oldstable above.
-
-#  TODO: wxStyledTextCtrl does not exist in wxQT, so we would have to replace it.
-#        And there will be more for sure.
 android_build_rate=0
 android_upload="false"
 android_git_push="false"
