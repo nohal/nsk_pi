@@ -5,41 +5,35 @@
 # License:      GPLv3+
 # ~~~
 
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
-# (at your option) any later version.
-
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 3 of the License, or (at your option) any later
+# version.
 
 # -------- Options ----------
 
 set(OCPN_TEST_REPO
-  "nohal/opencpn-plugins"
-  CACHE STRING "Default repository for untagged builds"
-)
+    "nohal/opencpn-plugins"
+    CACHE STRING "Default repository for untagged builds")
 set(OCPN_BETA_REPO
-  "nohal/nsk_pi-beta"
-  CACHE STRING
-  "Default repository for tagged builds matching 'beta'"
-)
+    "nohal/nsk_pi-beta"
+    CACHE STRING "Default repository for tagged builds matching 'beta'")
 set(OCPN_RELEASE_REPO
-  "nohal/nsk_pi-stable"
-  CACHE STRING
-  "Default repository for tagged builds not matching 'beta'"
-)
+    "nohal/nsk_pi-stable"
+    CACHE STRING "Default repository for tagged builds not matching 'beta'")
 
-#
 #
 # -------  Plugin setup --------
 #
 set(PKG_NAME NSK_pi)
-set(PKG_VERSION "0.2.0")
-set(PKG_PRERELEASE "")  # Empty, or a tag like 'beta'
+set(PKG_VERSION "0.2.1")
+set(PKG_PRERELEASE "") # Empty, or a tag like 'beta'
 
-set(DISPLAY_NAME NSK)    # Dialogs, installer artifacts, ...
+set(DISPLAY_NAME NSK) # Dialogs, installer artifacts, ...
 set(PLUGIN_API_NAME NSK) # As of GetCommonName() in plugin API
 set(PKG_SUMMARY "NMEA0183 to SignalK converter plugin for OpenCPN")
-set(PKG_DESCRIPTION [=[
+set(PKG_DESCRIPTION
+    [=[
   NMEA0183 to SignalK converter plugin for OpenCPN
 ]=])
 
@@ -63,36 +57,32 @@ add_definitions(-DRAPIDJSON_HAS_STDSTRING=1)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 set(HDR_N
-  ${CMAKE_SOURCE_DIR}/include/nsk.h
-  ${CMAKE_SOURCE_DIR}/include/nskgui.h
-  ${CMAKE_SOURCE_DIR}/include/nskguiimpl.h
-)
-set(SRC_N
-  ${CMAKE_SOURCE_DIR}/src/nsk.cpp
-  ${CMAKE_SOURCE_DIR}/src/nskgui.cpp
-  ${CMAKE_SOURCE_DIR}/src/nskguiimpl.cpp
-)
+    ${CMAKE_SOURCE_DIR}/include/nsk.h ${CMAKE_SOURCE_DIR}/include/nskgui.h
+    ${CMAKE_SOURCE_DIR}/include/nskguiimpl.h)
+set(SRC_N ${CMAKE_SOURCE_DIR}/src/nsk.cpp ${CMAKE_SOURCE_DIR}/src/nskgui.cpp
+          ${CMAKE_SOURCE_DIR}/src/nskguiimpl.cpp)
 
-set(SRC
-  ${HDR_N}
-  ${SRC_N}
-  ${CMAKE_SOURCE_DIR}/include/nsk_pi.h
-  ${CMAKE_SOURCE_DIR}/src/nsk_pi.cpp
-)
+set(SRC ${HDR_N} ${SRC_N} ${CMAKE_SOURCE_DIR}/include/nsk_pi.h
+        ${CMAKE_SOURCE_DIR}/src/nsk_pi.cpp)
 
-set(PKG_API_LIB api-18)  #  A dir in opencpn-libs/ e. g., api-17 or api-16
+set(PKG_API_LIB api-18) # A dir in opencpn-libs/ e. g., api-17 or api-16
 
 macro(late_init)
-  # Perform initialization after the PACKAGE_NAME library, compilers
-  # and ocpn::api is available.
+  # Perform initialization after the PACKAGE_NAME library, compilers and
+  # ocpn::api is available.
 
   # Prepare doxygen config
-  configure_file(${CMAKE_SOURCE_DIR}/doc/Doxyfile.in ${CMAKE_BINARY_DIR}/Doxyfile)
-  configure_file(${CMAKE_SOURCE_DIR}/doc/header.html.in ${CMAKE_BINARY_DIR}/header.html)
+  configure_file(${CMAKE_SOURCE_DIR}/doc/Doxyfile.in
+                 ${CMAKE_BINARY_DIR}/Doxyfile)
+  configure_file(${CMAKE_SOURCE_DIR}/doc/header.html.in
+                 ${CMAKE_BINARY_DIR}/header.html)
   # Prepare asciidoxy
-  configure_file(${CMAKE_SOURCE_DIR}/doc/api.adoc.in ${CMAKE_BINARY_DIR}/api.adoc @ONLY)
-  configure_file(${CMAKE_SOURCE_DIR}/doc/packages.toml ${CMAKE_BINARY_DIR}/packages.toml)
-  configure_file(${CMAKE_SOURCE_DIR}/doc/contents.toml ${CMAKE_BINARY_DIR}/contents.toml)
+  configure_file(${CMAKE_SOURCE_DIR}/doc/api.adoc.in
+                 ${CMAKE_BINARY_DIR}/api.adoc @ONLY)
+  configure_file(${CMAKE_SOURCE_DIR}/doc/packages.toml
+                 ${CMAKE_BINARY_DIR}/packages.toml)
+  configure_file(${CMAKE_SOURCE_DIR}/doc/contents.toml
+                 ${CMAKE_BINARY_DIR}/contents.toml)
 endmacro()
 
 macro(add_plugin_libraries)
@@ -105,13 +95,13 @@ macro(add_plugin_libraries)
   endif()
 endmacro()
 
-add_custom_target(doxygen-docs
+add_custom_target(
+  doxygen-docs
   COMMAND doxygen
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-)
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-add_custom_target(asciidoxy-docs
+add_custom_target(
+  asciidoxy-docs
   COMMAND asciidoxy -D apidocs --spec-file packages.toml api.adoc
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-  DEPENDS doxygen-docs
-)
+  DEPENDS doxygen-docs)
