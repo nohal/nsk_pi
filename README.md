@@ -4,6 +4,9 @@ NSK plugin for OpenCPN
 This project provides a converter of NMEA 0183 messages to SignalK deltas for [OpenCPN](https://opencpn.org) based on the [SignalK](https://signalk.org) data model.
 The primary purpose of the plugin is to provide data for the [DashboardSK plugin](https://github.com/nohal/dashboardsk_pi) in small installations where a proper SignalK data source is not available.
 
+[![Hosted By: Cloudsmith](https://img.shields.io/badge/OSS%20hosting%20by-cloudsmith-blue?logo=cloudsmith&style=flat-square)](https://cloudsmith.com)
+[![Coverity Scan Build Status](https://scan.coverity.com/projects/27176/badge.svg)](https://scan.coverity.com/projects/nohal-nsk_pi)
+
 ## Dependencies
 
 The plugin uses wxWidgets 3.2 or newer (although building against wxWidgets 3.0 may still be possible until we start to hard-enforce use of wxBitmapBundle) and targets OpenCPN 5.7 or newer with plugin API 1.18.
