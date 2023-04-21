@@ -1,2 +1,8 @@
 include/nsk_pi.h
 src/nsk_pi.cpp
+src/nsk.cpp
+include/nsk.h
+src/nskgui.cpp
+include/nskgui.h
+src/nskguiimpl.cpp
+include/nskguiimpl.h

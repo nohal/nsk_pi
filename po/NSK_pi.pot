@@ -1,0 +1,56 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the NSK_pi package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: NSK_pi 0.2.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-04-21 07:47-0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/nsk_pi.cpp:119
+msgid "NSK"
+msgstr ""
+
+#: src/nsk_pi.cpp:123
+msgid "NMEA 0183 to SignalK converter PlugIn for OpenCPN"
+msgstr ""
+
+#: src/nsk_pi.cpp:128
+msgid "Simple converter of NMEA 0183 messages to SignalK deltas.\n"
+msgstr ""
+
+#: src/nskgui.cpp:22
+#, c-format
+msgid "Input data rate: %d sentences/s, output data rate: %d deltas/s"
+msgstr ""
+
+#: src/nskgui.cpp:28
+#, c-format
+msgid "Input total: %d, Deltas total: %d"
+msgstr ""
+
+#: src/nskgui.cpp:38
+msgid "Known (uncheck to ignore)"
+msgstr ""
+
+#: src/nskgui.cpp:50
+msgid "Unimplemented"
+msgstr ""
+
+#: src/nskgui.cpp:59 src/nskgui.cpp:75
+msgid "XXX"
+msgstr ""
+
+#: src/nskgui.cpp:67
+msgid "Unknown"
+msgstr ""
