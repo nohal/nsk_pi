@@ -74,7 +74,7 @@ To execute the tests, simply run `ctest` in the build directory.
 
 To configure the build to enable sanitizer support, run cmake with `-DSANITIZE=<comma separated list of sanitizers>, eg. `cmake -DSANITIZE=address ..` to enable the adderess sanitizer reporting memory leaks.
 
-### Adding a new instrument
+### Adding a new sentence translation
 
 - Add the respective MarNav header file include directive to [nsk.h](https://github.com/nohal/nsk_pi/blob/main/include/nsk.h#L37)
 
