@@ -150,10 +150,13 @@ void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::rmc> s,
         hdg.AddMember("value", deg2rad(*s->get_heading()), allocator);
         values_array.PushBack(hdg, allocator);
     }
-    if (s->get_sog().has_value()) {
+
+    auto rmc_sog = s->get_sog();
+    if (rmc_sog.has_value()) {
         Value sog(kObjectType);
         sog.AddMember("path", "navigation.speedOverGround", allocator);
-        sog.AddMember("value", kn2ms((*s->get_sog()).value()), allocator);
+        sog.AddMember("value",
+            kn2ms(rmc_sog->get<marnav::units::knots>().value()), allocator);
         values_array.PushBack(sog, allocator);
     }
     if (s->get_time_utc().has_value()) {
@@ -169,16 +172,16 @@ void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::vtg> s,
     rapidjson::Document::AllocatorType& allocator)
 {
     if (s->get_track_true().has_value()) {
-        Value sog(kObjectType);
-        sog.AddMember("path", "navigation.headingTrue", allocator);
-        sog.AddMember("value", s->get_track_true().value(), allocator);
-        values_array.PushBack(sog, allocator);
+        Value hdt(kObjectType);
+        hdt.AddMember("path", "navigation.headingTrue", allocator);
+        hdt.AddMember("value", s->get_track_true().value(), allocator);
+        values_array.PushBack(hdt, allocator);
     }
     if (s->get_track_magn().has_value()) {
-        Value sog(kObjectType);
-        sog.AddMember("path", "navigation.headingMagnetic", allocator);
-        sog.AddMember("value", s->get_track_magn().value(), allocator);
-        values_array.PushBack(sog, allocator);
+        Value trm(kObjectType);
+        trm.AddMember("path", "navigation.headingMagnetic", allocator);
+        trm.AddMember("value", s->get_track_magn().value(), allocator);
+        values_array.PushBack(trm, allocator);
     }
     if (s->get_speed_kn().has_value()) {
         Value sog(kObjectType);
