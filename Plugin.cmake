@@ -26,15 +26,15 @@ set(OCPN_RELEASE_REPO
 # -------  Plugin setup --------
 #
 set(PKG_NAME NSK_pi)
-set(PKG_VERSION "0.2.2")
+set(PKG_VERSION "0.2.3")
 set(PKG_PRERELEASE "") # Empty, or a tag like 'beta'
 
 set(DISPLAY_NAME NSK) # Dialogs, installer artifacts, ...
 set(PLUGIN_API_NAME NSK) # As of GetCommonName() in plugin API
-set(PKG_SUMMARY "NMEA0183 to SignalK converter plugin for OpenCPN")
+set(PKG_SUMMARY "NMEA0183 to SignalK converter")
 set(PKG_DESCRIPTION
     [=[
-  NMEA0183 to SignalK converter plugin for OpenCPN
+  NMEA0183 to SignalK converter
 ]=])
 
 set(PKG_AUTHOR "Pavel Kalian")
