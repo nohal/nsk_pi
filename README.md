@@ -31,7 +31,7 @@ make
 Run `x86 Native Tools Command Prompt for VS 2022` from the Start menu as Administrator
 
 ```
-git clone https://github.com/nohal/nsk_pi.git
+git clone --recurse-submodules https://github.com/nohal/nsk_pi.git
 cd nsk_pi.git
 ci\appveyor.bat
 cd build
