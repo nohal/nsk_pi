@@ -18,7 +18,7 @@ The plugin uses wxWidgets 3.2 or newer (although building against wxWidgets 3.0 
 To compile this plugin you have to be able to compile OpenCPN itself, refer to the [OpenCPN Developer Manual](https://opencpn-manuals.github.io/main/ocpn-dev-manual/intro-AboutThisManual.html) for instructions on preparing the environment
 
 ```bash
-git clone --recurse-submodules git://github.com/nohal/nsk_pi.git
+git clone --recurse-submodules https://github.com/nohal/nsk_pi.git
 cd nsk_pi
 mkdir build
 cd build
