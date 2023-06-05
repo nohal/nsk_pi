@@ -9,9 +9,9 @@
 # License: BSD with Advertising, see
 # https://fedoraproject.org/wiki/Licensing:BSD#3ClauseBSD for details
 
-set(mnav_repo https://github.com/nohal/marnav.git)
+set(mnav_repo https://github.com/mariokonrad/marnav.git)
 # set(mnav_tag v0.14.0)
-set(mnav_tag 23520021d68efef653b832382220667c738b26c1)
+set(mnav_tag 01c55205736fcc8157891b84e3efe387a221ff3a)
 
 add_library(_ocpn_marnav_if INTERFACE)
 add_library(ocpn::marnav ALIAS _ocpn_marnav_if)
