@@ -24,16 +24,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-#include <marnav/nmea/angle.hpp>
-#include <marnav/nmea/gga.hpp>
-#include <marnav/nmea/gll.hpp>
-#include <marnav/nmea/gsa.hpp>
-#include <marnav/nmea/gsv.hpp>
-#include <marnav/nmea/io.hpp>
-#include <marnav/nmea/nmea.hpp>
-#include <marnav/nmea/rmc.hpp>
-#include <marnav/nmea/vtg.hpp>
-
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
@@ -52,9 +42,6 @@ PLUGIN_BEGIN_NAMESPACE
 #define kn2ms(x) (0.51444444444 * (x))
 
 using namespace rapidjson;
-
-using namespace marnav;
-using namespace nmea;
 
 // the class factories, used to create and destroy instances of the PlugIn
 
