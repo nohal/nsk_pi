@@ -42,6 +42,8 @@ PLUGIN_BEGIN_NAMESPACE
 
 #define kn2ms(x) (0.51444444444 * (x))
 #define kmh2ms(x) (0.27777777778 * (x))
+#define FATHOM2METER 1.8288
+#define FOOT2METER 0.3048
 
 using namespace rapidjson;
 
@@ -196,6 +198,30 @@ void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::vtg> s,
     }
 }
 
+void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::dbt> s,
+    rapidjson::Value& values_array,
+    rapidjson::Document::AllocatorType& allocator)
+{
+    if (s->get_depth_meter().has_value()) {
+        Value dbt(kObjectType);
+        dbt.AddMember("path", "environment.depth.belowTransducer", allocator);
+        dbt.AddMember("value", s->get_depth_meter().value().value(), allocator);
+        values_array.PushBack(dbt, allocator);
+    } else if (s->get_depth_feet().has_value()) {
+        Value dbt(kObjectType);
+        dbt.AddMember("path", "environment.depth.belowTransducer", allocator);
+        dbt.AddMember("value", s->get_depth_feet().value().value() * FOOT2METER,
+            allocator);
+        values_array.PushBack(dbt, allocator);
+    } else if (s->get_depth_fathom().has_value()) {
+        Value dbt(kObjectType);
+        dbt.AddMember("path", "environment.depth.belowTransducer", allocator);
+        dbt.AddMember("value",
+            s->get_depth_fathom().value().value() * FATHOM2METER, allocator);
+        values_array.PushBack(dbt, allocator);
+    }
+}
+
 // --- End of sentence processing implementations
 
 void NSK::ProcessNMEASentence(
@@ -245,6 +271,9 @@ void NSK::ProcessNMEASentence(
                 break;
             case sentence_id::VTG:
                 ProcessSentence(sentence_cast<nmea::vtg>(s), values, allocator);
+                break;
+            case sentence_id::DBT:
+                ProcessSentence(sentence_cast<nmea::dbt>(s), values, allocator);
                 break;
             default:
                 ++m_unimplemented_count;

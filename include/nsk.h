@@ -34,6 +34,7 @@
 #include <marnav/nmea/io.hpp>
 #include <marnav/nmea/nmea.hpp>
 // Sentences supported
+#include <marnav/nmea/dbt.hpp>
 #include <marnav/nmea/gga.hpp>
 #include <marnav/nmea/gll.hpp>
 #include <marnav/nmea/gsa.hpp>
@@ -152,6 +153,13 @@ private:
     /// @param values_array SignalK values array object reference
     /// @param allocator Allocator reference
     void ProcessSentence(std::unique_ptr<marnav::nmea::vtg> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    /// @brief Process the DBT NMEA0183 sentence
+    /// @param s sentence pointer
+    /// @param values_array SignalK values array object reference
+    /// @param allocator Allocator reference
+    void ProcessSentence(std::unique_ptr<marnav::nmea::dbt> s,
         rapidjson::Value& values_array,
         rapidjson::Document::AllocatorType& allocator);
 
