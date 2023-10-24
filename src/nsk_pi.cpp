@@ -102,6 +102,14 @@ int nsk_pi::GetPlugInVersionMajor() { return PLUGIN_VERSION_MAJOR; }
 
 int nsk_pi::GetPlugInVersionMinor() { return PLUGIN_VERSION_MINOR; }
 
+int nsk_pi::GetPlugInVersionPatch() { return PLUGIN_VERSION_PATCH; }
+
+int nsk_pi::GetPlugInVersionPost() { return PLUGIN_VERSION_TWEAK; }
+
+const char* nsk_pi::GetPlugInVersionPre() { return PKG_PRERELEASE; }
+
+const char* nsk_pi::GetPlugInVersionBuild() { return PKG_BUILD_INFO; }
+
 wxBitmap* nsk_pi::GetPlugInBitmap() { return &m_logo; }
 wxString nsk_pi::GetCommonName() { return _("NSK"); }
 
