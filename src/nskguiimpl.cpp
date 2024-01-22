@@ -36,22 +36,22 @@ NSKPreferencesDialogImpl::NSKPreferencesDialogImpl(NSK* nsk, wxWindow* parent,
 {
     m_tUnimplemented->SetValue(m_nsk->Unimplemented());
     m_stTotalUnimplemented->SetLabelText(
-        wxString::Format("%d", m_nsk->TotalUnimplemented()));
+        wxString::Format("%lu", m_nsk->TotalUnimplemented()));
     m_tUnknown->SetValue(m_nsk->Unknown());
     m_stTotalUnknown->SetLabelText(
-        wxString::Format("%d", m_nsk->TotalUnknown()));
+        wxString::Format("%lu", m_nsk->TotalUnknown()));
     for (auto known : m_nsk->Known()) {
         m_clKnown->Append(known.talker_tag);
         m_clKnown->Check(m_clKnown->GetCount() - 1, known.enabled);
     }
     auto format
-        = "Input data rate: %d sentences/s, output data rate: %d deltas/s";
+        = "Input data rate: %lu sentences/s, output data rate: %lu deltas/s";
     auto sz
         = std::snprintf(nullptr, 0, format, m_nsk->NMEARate(), m_nsk->SKRate());
     std::string output(sz + 1, '\0');
     std::sprintf(&output[0], format, m_nsk->NMEARate(), m_nsk->SKRate());
     m_stDataRate->SetLabelText(output);
-    format = "Input total: %d, Deltas total: %d";
+    format = "Input total: %lu, Deltas total: %lu";
     sz = std::snprintf(
         nullptr, 0, format, m_nsk->NMEATotal(), m_nsk->SKTotal());
     output.resize(sz + 1, '\0');
