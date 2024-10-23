@@ -22,7 +22,8 @@ repos:
                 sqlite.*|
                 wxsqlite.*|
                 .*json|
-                .*yml
+                .*yml|
+                include/rapidjson.*
             )$
   #- repo: https://github.com/cmake-lint/cmake-lint
   #  rev: 1.4.2
