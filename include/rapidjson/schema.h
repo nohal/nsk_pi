@@ -450,7 +450,7 @@ public:
                 AddType(*v);
             else if (v->IsArray())
                 for (ConstValueIterator itr = v->Begin(); itr != v->End();
-                     ++itr)
+                    ++itr)
                     AddType(*itr);
         }
 
@@ -459,7 +459,7 @@ public:
                 enum_ = static_cast<uint64_t*>(
                     allocator_->Malloc(sizeof(uint64_t) * v->Size()));
                 for (ConstValueIterator itr = v->Begin(); itr != v->End();
-                     ++itr) {
+                    ++itr) {
                     typedef Hasher<EncodingType, MemoryPoolAllocator<>>
                         EnumHasherType;
                     char buffer[256 + 24];
@@ -499,22 +499,22 @@ public:
 
             if (properties && properties->IsObject())
                 for (ConstMemberIterator itr = properties->MemberBegin();
-                     itr != properties->MemberEnd(); ++itr)
+                    itr != properties->MemberEnd(); ++itr)
                     AddUniqueElement(allProperties, itr->name);
 
             if (required && required->IsArray())
                 for (ConstValueIterator itr = required->Begin();
-                     itr != required->End(); ++itr)
+                    itr != required->End(); ++itr)
                     if (itr->IsString())
                         AddUniqueElement(allProperties, *itr);
 
             if (dependencies && dependencies->IsObject())
                 for (ConstMemberIterator itr = dependencies->MemberBegin();
-                     itr != dependencies->MemberEnd(); ++itr) {
+                    itr != dependencies->MemberEnd(); ++itr) {
                     AddUniqueElement(allProperties, itr->name);
                     if (itr->value.IsArray())
                         for (ConstValueIterator i = itr->value.Begin();
-                             i != itr->value.End(); ++i)
+                            i != itr->value.End(); ++i)
                             if (i->IsString())
                                 AddUniqueElement(allProperties, *i);
                 }
@@ -534,7 +534,7 @@ public:
         if (properties && properties->IsObject()) {
             PointerType q = p.Append(GetPropertiesString(), allocator_);
             for (ConstMemberIterator itr = properties->MemberBegin();
-                 itr != properties->MemberEnd(); ++itr) {
+                itr != properties->MemberEnd(); ++itr) {
                 SizeType index;
                 if (FindPropertyIndex(itr->name, &index))
                     schemaDocument->CreateSchema(&properties_[index].schema,
@@ -550,7 +550,7 @@ public:
             patternPropertyCount_ = 0;
 
             for (ConstMemberIterator itr = v->MemberBegin();
-                 itr != v->MemberEnd(); ++itr) {
+                itr != v->MemberEnd(); ++itr) {
                 new (&patternProperties_[patternPropertyCount_])
                     PatternProperty();
                 patternProperties_[patternPropertyCount_].pattern
@@ -564,7 +564,7 @@ public:
 
         if (required && required->IsArray())
             for (ConstValueIterator itr = required->Begin();
-                 itr != required->End(); ++itr)
+                itr != required->End(); ++itr)
                 if (itr->IsString()) {
                     SizeType index;
                     if (FindPropertyIndex(*itr, &index)) {
@@ -577,7 +577,7 @@ public:
             PointerType q = p.Append(GetDependenciesString(), allocator_);
             hasDependencies_ = true;
             for (ConstMemberIterator itr = dependencies->MemberBegin();
-                 itr != dependencies->MemberEnd(); ++itr) {
+                itr != dependencies->MemberEnd(); ++itr) {
                 SizeType sourceIndex;
                 if (FindPropertyIndex(itr->name, &sourceIndex)) {
                     if (itr->value.IsArray()) {
@@ -587,7 +587,7 @@ public:
                         std::memset(properties_[sourceIndex].dependencies, 0,
                             sizeof(bool) * propertyCount_);
                         for (ConstValueIterator targetItr = itr->value.Begin();
-                             targetItr != itr->value.End(); ++targetItr) {
+                            targetItr != itr->value.End(); ++targetItr) {
                             SizeType targetIndex;
                             if (FindPropertyIndex(*targetItr, &targetIndex))
                                 properties_[sourceIndex]
@@ -631,7 +631,7 @@ public:
                     allocator_->Malloc(sizeof(const Schema*) * v->Size()));
                 SizeType index = 0;
                 for (ConstValueIterator itr = v->Begin(); itr != v->End();
-                     ++itr, index++)
+                    ++itr, index++)
                     schemaDocument->CreateSchema(
                         &itemsTuple_[itemsTupleCount_++],
                         q.Append(index, allocator_), *itr, document);
@@ -769,13 +769,13 @@ public:
 
         if (allOf_.schemas)
             for (SizeType i = allOf_.begin; i < allOf_.begin + allOf_.count;
-                 i++)
+                i++)
                 if (!context.validators[i]->IsValid())
                     RAPIDJSON_INVALID_KEYWORD_RETURN(GetAllOfString());
 
         if (anyOf_.schemas) {
             for (SizeType i = anyOf_.begin; i < anyOf_.begin + anyOf_.count;
-                 i++)
+                i++)
                 if (context.validators[i]->IsValid())
                     goto foundAny;
             RAPIDJSON_INVALID_KEYWORD_RETURN(GetAnyOfString());
@@ -785,7 +785,7 @@ public:
         if (oneOf_.schemas) {
             bool oneValid = false;
             for (SizeType i = oneOf_.begin; i < oneOf_.begin + oneOf_.count;
-                 i++)
+                i++)
                 if (context.validators[i]->IsValid()) {
                     if (oneValid)
                         RAPIDJSON_INVALID_KEYWORD_RETURN(GetOneOfString());
@@ -915,16 +915,16 @@ public:
             for (SizeType i = 0; i < patternPropertyCount_; i++)
                 if (patternProperties_[i].pattern
                     && IsPatternMatch(patternProperties_[i].pattern, str, len))
-                    context.patternPropertiesSchemas
-                        [context.patternPropertiesSchemaCount++]
+                    context.patternPropertiesSchemas[context
+                            .patternPropertiesSchemaCount++]
                         = patternProperties_[i].schema;
         }
 
         SizeType index;
         if (FindPropertyIndex(ValueType(str, len).Move(), &index)) {
             if (context.patternPropertiesSchemaCount > 0) {
-                context.patternPropertiesSchemas
-                    [context.patternPropertiesSchemaCount++]
+                context.patternPropertiesSchemas[context
+                        .patternPropertiesSchemaCount++]
                     = properties_[index].schema;
                 context.valueSchema = GetTypeless();
                 context.valuePatternValidatorType
@@ -941,8 +941,8 @@ public:
         if (additionalPropertiesSchema_) {
             if (additionalPropertiesSchema_
                 && context.patternPropertiesSchemaCount > 0) {
-                context.patternPropertiesSchemas
-                    [context.patternPropertiesSchemaCount++]
+                context.patternPropertiesSchemas[context
+                        .patternPropertiesSchemaCount++]
                     = additionalPropertiesSchema_;
                 context.valueSchema = GetTypeless();
                 context.valuePatternValidatorType
@@ -978,11 +978,11 @@ public:
 
         if (hasDependencies_) {
             for (SizeType sourceIndex = 0; sourceIndex < propertyCount_;
-                 sourceIndex++)
+                sourceIndex++)
                 if (context.propertyExist[sourceIndex]) {
                     if (properties_[sourceIndex].dependencies) {
                         for (SizeType targetIndex = 0;
-                             targetIndex < propertyCount_; targetIndex++)
+                            targetIndex < propertyCount_; targetIndex++)
                             if (properties_[sourceIndex]
                                     .dependencies[targetIndex]
                                 && !context.propertyExist[targetIndex])
@@ -990,9 +990,9 @@ public:
                                     GetDependenciesString());
                     } else if (properties_[sourceIndex].dependenciesSchema)
                         if (!context
-                                 .validators[properties_[sourceIndex]
-                                                 .dependenciesValidatorIndex]
-                                 ->IsValid())
+                                .validators[properties_[sourceIndex]
+                                        .dependenciesValidatorIndex]
+                                ->IsValid())
                             RAPIDJSON_INVALID_KEYWORD_RETURN(
                                 GetDependenciesString());
                 }
@@ -1124,7 +1124,7 @@ private:
     void AddUniqueElement(V1& a, const V2& v)
     {
         for (typename V1::ConstValueIterator itr = a.Begin(); itr != a.End();
-             ++itr)
+            ++itr)
             if (*itr == v)
                 return;
         V1 c(v, *allocator_);
@@ -1275,7 +1275,7 @@ private:
                 for (SizeType i = 0; i < propertyCount_; i++)
                     if (properties_[i].dependenciesSchema)
                         context.validators[properties_[i]
-                                               .dependenciesValidatorIndex]
+                                .dependenciesValidatorIndex]
                             = context.factory.CreateSchemaValidator(
                                 *properties_[i].dependenciesSchema);
             }
@@ -1703,7 +1703,7 @@ private:
                 CreateSchema(schema, pointer, v, document);
 
             for (typename ValueType::ConstMemberIterator itr = v.MemberBegin();
-                 itr != v.MemberEnd(); ++itr)
+                itr != v.MemberEnd(); ++itr)
                 CreateSchemaRecursive(0, pointer.Append(itr->name, allocator_),
                     itr->value, document);
         } else if (v.GetType() == kArrayType)
@@ -1781,8 +1781,8 @@ private:
     const SchemaType* GetSchema(const PointerType& pointer) const
     {
         for (const SchemaEntry* target
-             = schemaMap_.template Bottom<SchemaEntry>();
-             target != schemaMap_.template End<SchemaEntry>(); ++target)
+            = schemaMap_.template Bottom<SchemaEntry>();
+            target != schemaMap_.template End<SchemaEntry>(); ++target)
             if (pointer == target->pointer)
                 return target->schema;
         return 0;
@@ -1791,8 +1791,8 @@ private:
     PointerType GetPointer(const SchemaType* schema) const
     {
         for (const SchemaEntry* target
-             = schemaMap_.template Bottom<SchemaEntry>();
-             target != schemaMap_.template End<SchemaEntry>(); ++target)
+            = schemaMap_.template Bottom<SchemaEntry>();
+            target != schemaMap_.template End<SchemaEntry>(); ++target)
             if (schema == target->schema)
                 return target->pointer;
         return PointerType();
@@ -1936,7 +1936,7 @@ public:
         return documentStack_.Empty()
             ? PointerType()
             : PointerType(documentStack_.template Bottom<Ch>(),
-                documentStack_.GetSize() / sizeof(Ch));
+                  documentStack_.GetSize() / sizeof(Ch));
     }
 
 #if RAPIDJSON_SCHEMA_VERBOSE
@@ -1960,7 +1960,7 @@ public:
 
 #define RAPIDJSON_SCHEMA_HANDLE_PARALLEL_(method, arg2)                        \
     for (Context* context = schemaStack_.template Bottom<Context>();           \
-         context != schemaStack_.template End<Context>(); context++) {         \
+        context != schemaStack_.template End<Context>(); context++) {          \
         if (context->hasher)                                                   \
             static_cast<HasherType*>(context->hasher)->method arg2;            \
         if (context->validators)                                               \
@@ -1969,7 +1969,7 @@ public:
                     ->method arg2;                                             \
         if (context->patternPropertiesValidators)                              \
             for (SizeType i_ = 0;                                              \
-                 i_ < context->patternPropertiesValidatorCount; i_++)          \
+                i_ < context->patternPropertiesValidatorCount; i_++)           \
                 static_cast<GenericSchemaValidator*>(                          \
                     context->patternPropertiesValidators[i_])                  \
                     ->method arg2;                                             \
@@ -2221,8 +2221,8 @@ private:
                         GetStateAllocator().Malloc(sizeof(HashCodeArray)))
                         HashCodeArray(kArrayType);
                 for (typename HashCodeArray::ConstValueIterator itr
-                     = a->Begin();
-                     itr != a->End(); ++itr)
+                    = a->Begin();
+                    itr != a->End(); ++itr)
                     if (itr->GetUint64() == h)
                         RAPIDJSON_INVALID_KEYWORD_RETURN(
                             SchemaType::GetUniqueItemsString());

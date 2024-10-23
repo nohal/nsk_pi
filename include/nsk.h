@@ -173,7 +173,7 @@ public:
         , m_nmea_received_total(0)
         , m_sk_produced_total(0)
         , m_unimplemented_count(0)
-        , m_counters_start(std::chrono::system_clock::now()) {};
+        , m_counters_start(std::chrono::system_clock::now()) { };
     /// @brief Process NMEA 0183 sentence string
     /// @param stc NMEA 0183 sentence without the trailing "\r\n"
     /// @param outdoc Pointer to a JSON document to which the resulting JSON

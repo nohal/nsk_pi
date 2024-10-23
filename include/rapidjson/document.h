@@ -464,8 +464,7 @@ inline GenericStringRef<CharType> StringRef(
 namespace internal {
 
 template <typename T, typename Encoding = void, typename Allocator = void>
-struct IsGenericValueImpl : FalseType {
-};
+struct IsGenericValueImpl : FalseType { };
 
 // select candidates according to nested encoding and allocator types
 template <typename T>
@@ -473,13 +472,11 @@ struct IsGenericValueImpl<T, typename Void<typename T::EncodingType>::Type,
     typename Void<typename T::AllocatorType>::Type>
     : IsBaseOf<
           GenericValue<typename T::EncodingType, typename T::AllocatorType>,
-          T>::Type {
-};
+          T>::Type { };
 
 // helper to match arbitrary GenericValue instantiations, including derived
 // classes
-template <typename T> struct IsGenericValue : IsGenericValueImpl<T>::Type {
-};
+template <typename T> struct IsGenericValue : IsGenericValueImpl<T>::Type { };
 
 } // namespace internal
 
@@ -488,8 +485,7 @@ template <typename T> struct IsGenericValue : IsGenericValueImpl<T>::Type {
 
 namespace internal {
 
-template <typename ValueType, typename T> struct TypeHelper {
-};
+template <typename ValueType, typename T> struct TypeHelper { };
 
 template <typename ValueType> struct TypeHelper<ValueType, bool> {
     static bool Is(const ValueType& v) { return v.IsBool(); }
@@ -1009,7 +1005,7 @@ public:
         \param other Another value.
         \note Constant complexity.
     */
-    GenericValue& Swap(GenericValue& other) RAPIDJSON_NOEXCEPT
+    GenericValue& Swap(GenericValue & other) RAPIDJSON_NOEXCEPT
     {
         GenericValue temp;
         temp.RawAssign(*this);
@@ -1028,7 +1024,8 @@ public:
         \endcode
         \see Swap()
      */
-    friend inline void swap(GenericValue& a, GenericValue& b) RAPIDJSON_NOEXCEPT
+    friend inline void swap(
+        GenericValue & a, GenericValue & b) RAPIDJSON_NOEXCEPT
     {
         a.Swap(b);
     }
@@ -1058,7 +1055,7 @@ public:
             if (data_.o.size != rhs.data_.o.size)
                 return false;
             for (ConstMemberIterator lhsMemberItr = MemberBegin();
-                 lhsMemberItr != MemberEnd(); ++lhsMemberItr) {
+                lhsMemberItr != MemberEnd(); ++lhsMemberItr) {
                 typename RhsType::ConstMemberIterator rhsMemberItr
                     = rhs.FindMember(lhsMemberItr->name);
                 if (rhsMemberItr == rhs.MemberEnd()
@@ -1116,7 +1113,7 @@ public:
     RAPIDJSON_DISABLEIF_RETURN(
         (internal::OrExpr<internal::IsPointer<T>, internal::IsGenericValue<T>>),
         (bool))
-    operator==(const T& rhs) const
+    operator==(const T & rhs) const
     {
         return *this == GenericValue(rhs);
     }
@@ -1138,7 +1135,7 @@ public:
      */
     template <typename T>
     RAPIDJSON_DISABLEIF_RETURN((internal::IsGenericValue<T>), (bool))
-    operator!=(const T& rhs) const
+    operator!=(const T & rhs) const
     {
         return !(*this == rhs);
     }
@@ -1147,8 +1144,8 @@ public:
     /*! \return (rhs == lhs)
      */
     template <typename T>
-    friend RAPIDJSON_DISABLEIF_RETURN((internal::IsGenericValue<T>), (bool))
-    operator==(const T& lhs, const GenericValue& rhs)
+    friend RAPIDJSON_DISABLEIF_RETURN((internal::IsGenericValue<T>),
+        (bool)) operator==(const T & lhs, const GenericValue & rhs)
     {
         return rhs == lhs;
     }
@@ -1157,8 +1154,8 @@ public:
     /*! \return !(rhs == lhs)
      */
     template <typename T>
-    friend RAPIDJSON_DISABLEIF_RETURN((internal::IsGenericValue<T>), (bool))
-    operator!=(const T& lhs, const GenericValue& rhs)
+    friend RAPIDJSON_DISABLEIF_RETURN((internal::IsGenericValue<T>),
+        (bool)) operator!=(const T & lhs, const GenericValue & rhs)
     {
         return !(rhs == lhs);
     }
@@ -1304,7 +1301,7 @@ public:
         (internal::NotExpr<
             internal::IsSame<typename internal::RemoveConst<T>::Type, Ch>>),
         (GenericValue&))
-    operator[](T* name)
+    operator[](T * name)
     {
         GenericValue n(StringRef(name));
         return (*this)[n];
@@ -1314,7 +1311,7 @@ public:
         (internal::NotExpr<
             internal::IsSame<typename internal::RemoveConst<T>::Type, Ch>>),
         (const GenericValue&))
-    operator[](T* name) const
+    operator[](T * name) const
     {
         return const_cast<GenericValue&>(*this)[name];
     }
@@ -1521,7 +1518,7 @@ public:
        name.IsNull() && value.IsNull() \note Amortized Constant time complexity.
     */
     GenericValue& AddMember(
-        GenericValue& name, GenericValue& value, Allocator& allocator)
+        GenericValue & name, GenericValue & value, Allocator & allocator)
     {
         RAPIDJSON_ASSERT(IsObject());
         RAPIDJSON_ASSERT(name.IsString());
@@ -1559,7 +1556,7 @@ public:
         \note Amortized Constant time complexity.
     */
     GenericValue& AddMember(
-        GenericValue& name, StringRefType value, Allocator& allocator)
+        GenericValue & name, StringRefType value, Allocator & allocator)
     {
         GenericValue v(value);
         return AddMember(name, v, allocator);
@@ -1606,7 +1603,7 @@ public:
     RAPIDJSON_DISABLEIF_RETURN(
         (internal::OrExpr<internal::IsPointer<T>, internal::IsGenericValue<T>>),
         (GenericValue&))
-    AddMember(GenericValue& name, T value, Allocator& allocator)
+    AddMember(GenericValue & name, T value, Allocator & allocator)
     {
         GenericValue v(value);
         return AddMember(name, v, allocator);
@@ -1647,7 +1644,7 @@ public:
        time complexity.
     */
     GenericValue& AddMember(
-        StringRefType name, GenericValue& value, Allocator& allocator)
+        StringRefType name, GenericValue & value, Allocator & allocator)
     {
         GenericValue n(name);
         return AddMember(n, value, allocator);
@@ -1665,7 +1662,7 @@ public:
         \note Amortized Constant time complexity.
     */
     GenericValue& AddMember(
-        StringRefType name, StringRefType value, Allocator& allocator)
+        StringRefType name, StringRefType value, Allocator & allocator)
     {
         GenericValue v(value);
         return AddMember(name, v, allocator);
@@ -1692,7 +1689,7 @@ public:
     RAPIDJSON_DISABLEIF_RETURN(
         (internal::OrExpr<internal::IsPointer<T>, internal::IsGenericValue<T>>),
         (GenericValue&))
-    AddMember(StringRefType name, T value, Allocator& allocator)
+    AddMember(StringRefType name, T value, Allocator & allocator)
     {
         GenericValue n(name);
         return AddMember(n, value, allocator);
@@ -1946,7 +1943,7 @@ public:
         \return The value itself for fluent API.
         \note Linear time complexity.
     */
-    GenericValue& Reserve(SizeType newCapacity, Allocator& allocator)
+    GenericValue& Reserve(SizeType newCapacity, Allocator & allocator)
     {
         RAPIDJSON_ASSERT(IsArray());
         if (newCapacity > data_.a.capacity) {
@@ -1971,7 +1968,7 @@ public:
        Reserve() once first may be more efficient. \note Amortized constant time
        complexity.
     */
-    GenericValue& PushBack(GenericValue& value, Allocator& allocator)
+    GenericValue& PushBack(GenericValue & value, Allocator & allocator)
     {
         RAPIDJSON_ASSERT(IsArray());
         if (data_.a.size >= data_.a.capacity)
@@ -2000,7 +1997,7 @@ public:
        once first may be more efficient. \note Amortized constant time
        complexity. \see GenericStringRef
     */
-    GenericValue& PushBack(StringRefType value, Allocator& allocator)
+    GenericValue& PushBack(StringRefType value, Allocator & allocator)
     {
         return (*this).template PushBack<StringRefType>(value, allocator);
     }
@@ -2028,7 +2025,7 @@ public:
     RAPIDJSON_DISABLEIF_RETURN(
         (internal::OrExpr<internal::IsPointer<T>, internal::IsGenericValue<T>>),
         (GenericValue&))
-    PushBack(T value, Allocator& allocator)
+    PushBack(T value, Allocator & allocator)
     {
         GenericValue v(value);
         return PushBack(v, allocator);
@@ -2321,7 +2318,7 @@ public:
        GenericDocument, which is also a Handler. \tparam Handler type of
        handler. \param handler An object implementing concept Handler.
     */
-    template <typename Handler> bool Accept(Handler& handler) const
+    template <typename Handler> bool Accept(Handler & handler) const
     {
         switch (GetType()) {
         case kNullType:
@@ -2527,7 +2524,7 @@ private:
         return RAPIDJSON_GETPOINTER(GenericValue, data_.a.elements);
     }
     RAPIDJSON_FORCEINLINE GenericValue* SetElementsPointer(
-        GenericValue* elements)
+        GenericValue * elements)
     {
         return RAPIDJSON_SETPOINTER(GenericValue, data_.a.elements, elements);
     }
@@ -2535,14 +2532,15 @@ private:
     {
         return RAPIDJSON_GETPOINTER(Member, data_.o.members);
     }
-    RAPIDJSON_FORCEINLINE Member* SetMembersPointer(Member* members)
+    RAPIDJSON_FORCEINLINE Member* SetMembersPointer(Member * members)
     {
         return RAPIDJSON_SETPOINTER(Member, data_.o.members, members);
     }
 
     // Initialize this value as array with initial data, without calling
     // destructor.
-    void SetArrayRaw(GenericValue* values, SizeType count, Allocator& allocator)
+    void SetArrayRaw(
+        GenericValue * values, SizeType count, Allocator & allocator)
     {
         data_.f.flags = kArrayFlag;
         if (count) {
@@ -2557,7 +2555,7 @@ private:
 
     //! Initialize this value as object with initial data, without calling
     //! destructor.
-    void SetObjectRaw(Member* members, SizeType count, Allocator& allocator)
+    void SetObjectRaw(Member * members, SizeType count, Allocator & allocator)
     {
         data_.f.flags = kObjectFlag;
         if (count) {
@@ -2580,7 +2578,7 @@ private:
 
     //! Initialize this value as copy string with initial data, without calling
     //! destructor.
-    void SetStringRaw(StringRefType s, Allocator& allocator)
+    void SetStringRaw(StringRefType s, Allocator & allocator)
     {
         Ch* str = 0;
         if (ShortString::Usable(s.length)) {
@@ -2599,7 +2597,7 @@ private:
     }
 
     //! Assignment without calling destructor
-    void RawAssign(GenericValue& rhs) RAPIDJSON_NOEXCEPT
+    void RawAssign(GenericValue & rhs) RAPIDJSON_NOEXCEPT
     {
         data_ = rhs.data_;
         // data_.f.flags = rhs.data_.f.flags;
@@ -2746,7 +2744,7 @@ public:
         \note Constant complexity.
         \see GenericValue::Swap
     */
-    GenericDocument& Swap(GenericDocument& rhs) RAPIDJSON_NOEXCEPT
+    GenericDocument& Swap(GenericDocument & rhs) RAPIDJSON_NOEXCEPT
     {
         ValueType::Swap(rhs);
         stack_.Swap(rhs.stack_);
@@ -2767,7 +2765,7 @@ public:
         \see Swap()
      */
     friend inline void swap(
-        GenericDocument& a, GenericDocument& b) RAPIDJSON_NOEXCEPT
+        GenericDocument & a, GenericDocument & b) RAPIDJSON_NOEXCEPT
     {
         a.Swap(b);
     }
@@ -2777,7 +2775,7 @@ public:
         \param g Generator functor which sends SAX events to the parameter.
         \return The document itself for fluent API.
     */
-    template <typename Generator> GenericDocument& Populate(Generator& g)
+    template <typename Generator> GenericDocument& Populate(Generator & g)
     {
         ClearStackOnExit scope(*this);
         if (g(*this)) {
@@ -2801,7 +2799,7 @@ public:
     */
     template <unsigned parseFlags, typename SourceEncoding,
         typename InputStream>
-    GenericDocument& ParseStream(InputStream& is)
+    GenericDocument& ParseStream(InputStream & is)
     {
         GenericReader<SourceEncoding, Encoding, StackAllocator> reader(
             stack_.HasAllocator() ? &stack_.GetAllocator() : 0);
@@ -2823,7 +2821,7 @@ public:
         \return The document itself for fluent API.
     */
     template <unsigned parseFlags, typename InputStream>
-    GenericDocument& ParseStream(InputStream& is)
+    GenericDocument& ParseStream(InputStream & is)
     {
         return ParseStream<parseFlags, Encoding, InputStream>(is);
     }
@@ -2834,7 +2832,7 @@ public:
         \return The document itself for fluent API.
     */
     template <typename InputStream>
-    GenericDocument& ParseStream(InputStream& is)
+    GenericDocument& ParseStream(InputStream & is)
     {
         return ParseStream<kParseDefaultFlags, Encoding, InputStream>(is);
     }
@@ -2848,17 +2846,17 @@ public:
         \param str Mutable zero-terminated string to be parsed.
         \return The document itself for fluent API.
     */
-    template <unsigned parseFlags> GenericDocument& ParseInsitu(Ch* str)
+    template <unsigned parseFlags> GenericDocument& ParseInsitu(Ch * str)
     {
         GenericInsituStringStream<Encoding> s(str);
-        return ParseStream<parseFlags | kParseInsituFlag>(s);
+        return ParseStream < parseFlags | kParseInsituFlag > (s);
     }
 
     //! Parse JSON text from a mutable string (with \ref kParseDefaultFlags)
     /*! \param str Mutable zero-terminated string to be parsed.
         \return The document itself for fluent API.
     */
-    GenericDocument& ParseInsitu(Ch* str)
+    GenericDocument& ParseInsitu(Ch * str)
     {
         return ParseInsitu<kParseDefaultFlags>(str);
     }
@@ -3190,12 +3188,12 @@ public:
     ValueType& operator[](SizeType index) const { return value_[index]; }
     ValueIterator Begin() const { return value_.Begin(); }
     ValueIterator End() const { return value_.End(); }
-    GenericArray Reserve(SizeType newCapacity, AllocatorType& allocator) const
+    GenericArray Reserve(SizeType newCapacity, AllocatorType & allocator) const
     {
         value_.Reserve(newCapacity, allocator);
         return *this;
     }
-    GenericArray PushBack(ValueType& value, AllocatorType& allocator) const
+    GenericArray PushBack(ValueType & value, AllocatorType & allocator) const
     {
         value_.PushBack(value, allocator);
         return *this;
@@ -3207,7 +3205,7 @@ public:
         return *this;
     }
 #endif // RAPIDJSON_HAS_CXX11_RVALUE_REFS
-    GenericArray PushBack(StringRefType value, AllocatorType& allocator) const
+    GenericArray PushBack(StringRefType value, AllocatorType & allocator) const
     {
         value_.PushBack(value, allocator);
         return *this;
@@ -3216,7 +3214,7 @@ public:
     RAPIDJSON_DISABLEIF_RETURN(
         (internal::OrExpr<internal::IsPointer<T>, internal::IsGenericValue<T>>),
         (const GenericArray&))
-    PushBack(T value, AllocatorType& allocator) const
+    PushBack(T value, AllocatorType & allocator) const
     {
         value_.PushBack(value, allocator);
         return *this;
@@ -3242,11 +3240,11 @@ public:
 
 private:
     GenericArray();
-    GenericArray(ValueType& value)
+    GenericArray(ValueType & value)
         : value_(value)
     {
     }
-    ValueType& value_;
+    ValueType & value_;
 };
 
 //! Helper class for accessing Value of object type.
@@ -3335,13 +3333,13 @@ public:
     }
 #endif
     GenericObject AddMember(
-        ValueType& name, ValueType& value, AllocatorType& allocator) const
+        ValueType & name, ValueType & value, AllocatorType & allocator) const
     {
         value_.AddMember(name, value, allocator);
         return *this;
     }
     GenericObject AddMember(
-        ValueType& name, StringRefType value, AllocatorType& allocator) const
+        ValueType & name, StringRefType value, AllocatorType & allocator) const
     {
         value_.AddMember(name, value, allocator);
         return *this;
@@ -3358,7 +3356,7 @@ public:
     RAPIDJSON_DISABLEIF_RETURN(
         (internal::OrExpr<internal::IsPointer<T>, internal::IsGenericValue<T>>),
         (ValueType&))
-    AddMember(ValueType& name, T value, AllocatorType& allocator) const
+    AddMember(ValueType & name, T value, AllocatorType & allocator) const
     {
         value_.AddMember(name, value, allocator);
         return *this;
@@ -3390,13 +3388,13 @@ public:
     }
 #endif // RAPIDJSON_HAS_CXX11_RVALUE_REFS
     GenericObject AddMember(
-        StringRefType name, ValueType& value, AllocatorType& allocator) const
+        StringRefType name, ValueType & value, AllocatorType & allocator) const
     {
         value_.AddMember(name, value, allocator);
         return *this;
     }
-    GenericObject AddMember(
-        StringRefType name, StringRefType value, AllocatorType& allocator) const
+    GenericObject AddMember(StringRefType name, StringRefType value,
+        AllocatorType & allocator) const
     {
         value_.AddMember(name, value, allocator);
         return *this;
@@ -3405,7 +3403,7 @@ public:
     RAPIDJSON_DISABLEIF_RETURN(
         (internal::OrExpr<internal::IsPointer<T>, internal::IsGenericValue<T>>),
         (GenericObject))
-    AddMember(StringRefType name, T value, AllocatorType& allocator) const
+    AddMember(StringRefType name, T value, AllocatorType & allocator) const
     {
         value_.AddMember(name, value, allocator);
         return *this;
@@ -3461,11 +3459,11 @@ public:
 
 private:
     GenericObject();
-    GenericObject(ValueType& value)
+    GenericObject(ValueType & value)
         : value_(value)
     {
     }
-    ValueType& value_;
+    ValueType & value_;
 };
 
 RAPIDJSON_NAMESPACE_END

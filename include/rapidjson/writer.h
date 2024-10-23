@@ -475,7 +475,7 @@ protected:
                     PutUnsafe(*os_, hexDigits[(codepoint >> 12) & 15]);
                     PutUnsafe(*os_, hexDigits[(codepoint >> 8) & 15]);
                     PutUnsafe(*os_, hexDigits[(codepoint >> 4) & 15]);
-                    PutUnsafe(*os_, hexDigits[(codepoint)&15]);
+                    PutUnsafe(*os_, hexDigits[(codepoint) & 15]);
                 } else {
                     RAPIDJSON_ASSERT(
                         codepoint >= 0x010000 && codepoint <= 0x10FFFF);
@@ -486,13 +486,13 @@ protected:
                     PutUnsafe(*os_, hexDigits[(lead >> 12) & 15]);
                     PutUnsafe(*os_, hexDigits[(lead >> 8) & 15]);
                     PutUnsafe(*os_, hexDigits[(lead >> 4) & 15]);
-                    PutUnsafe(*os_, hexDigits[(lead)&15]);
+                    PutUnsafe(*os_, hexDigits[(lead) & 15]);
                     PutUnsafe(*os_, '\\');
                     PutUnsafe(*os_, 'u');
                     PutUnsafe(*os_, hexDigits[(trail >> 12) & 15]);
                     PutUnsafe(*os_, hexDigits[(trail >> 8) & 15]);
                     PutUnsafe(*os_, hexDigits[(trail >> 4) & 15]);
-                    PutUnsafe(*os_, hexDigits[(trail)&15]);
+                    PutUnsafe(*os_, hexDigits[(trail) & 15]);
                 }
             } else if ((sizeof(Ch) == 1 || static_cast<unsigned>(c) < 256)
                 && RAPIDJSON_UNLIKELY(escape[static_cast<unsigned char>(c)])) {
@@ -509,12 +509,13 @@ protected:
                     PutUnsafe(
                         *os_, hexDigits[static_cast<unsigned char>(c) & 0xF]);
                 }
-            } else if (RAPIDJSON_UNLIKELY(!(
-                           writeFlags & kWriteValidateEncodingFlag
-                               ? Transcoder<SourceEncoding,
-                                   TargetEncoding>::Validate(is, *os_)
-                               : Transcoder<SourceEncoding,
-                                   TargetEncoding>::TranscodeUnsafe(is, *os_))))
+            } else if (RAPIDJSON_UNLIKELY(
+                           !(writeFlags & kWriteValidateEncodingFlag
+                                   ? Transcoder<SourceEncoding,
+                                         TargetEncoding>::Validate(is, *os_)
+                                   : Transcoder<SourceEncoding,
+                                         TargetEncoding>::TranscodeUnsafe(is,
+                                         *os_))))
                 return false;
         }
         PutUnsafe(*os_, '\"');

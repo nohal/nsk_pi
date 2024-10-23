@@ -2,20 +2,27 @@
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.2.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
+        exclude: |
+            (?x)^(
+                .*svg|
+                .*png
+            )$
       - id: check-yaml
       - id: check-added-large-files
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v13.0.0
+    rev: v19.1.2
     hooks:
       - id: clang-format
         exclude: |
             (?x)^(
                 sqlite.*|
-                wxsqlite.*
+                wxsqlite.*|
+                .*json|
+                .*yml
             )$
   #- repo: https://github.com/cmake-lint/cmake-lint
   #  rev: 1.4.2
@@ -25,8 +32,11 @@ repos:
     rev: v0.6.13
     hooks:
     - id: cmake-format
-
-  - repo: https://github.com/redwarp/optimize-png-hooks
-    rev: v1.1.0
+  - repo: https://github.com/shssoichiro/oxipng
+    rev: v9.1.2
     hooks:
-      - id: optimize-png
+      - id: oxipng
+  - repo: https://github.com/nohal/mirrors-svgo
+    rev: v3.1.0
+    hooks:
+      - id: svgo

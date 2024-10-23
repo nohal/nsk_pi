@@ -78,7 +78,7 @@
 #define RAPIDJSON_PATCH_VERSION 0
 #define RAPIDJSON_VERSION_STRING                                               \
     RAPIDJSON_STRINGIFY(RAPIDJSON_MAJOR_VERSION.RAPIDJSON_MINOR_VERSION        \
-                            .RAPIDJSON_PATCH_VERSION)
+            .RAPIDJSON_PATCH_VERSION)
 
 ///////////////////////////////////////////////////////////////////////////////
 // RAPIDJSON_NAMESPACE_(BEGIN|END)
@@ -443,8 +443,7 @@ template <bool x> struct STATIC_ASSERTION_FAILURE;
 template <> struct STATIC_ASSERTION_FAILURE<true> {
     enum { value = 1 };
 };
-template <int x> struct StaticAssertTest {
-};
+template <int x> struct StaticAssertTest { };
 RAPIDJSON_NAMESPACE_END
 
 #define RAPIDJSON_JOIN(X, Y) RAPIDJSON_DO_JOIN(X, Y)
@@ -512,7 +511,7 @@ RAPIDJSON_NAMESPACE_END
     while ((void)0, 0)
 
 // adopted from Boost
-#define RAPIDJSON_VERSION_CODE(x, y, z) (((x)*100000) + ((y)*100) + (z))
+#define RAPIDJSON_VERSION_CODE(x, y, z) (((x) * 100000) + ((y) * 100) + (z))
 
 ///////////////////////////////////////////////////////////////////////////////
 // RAPIDJSON_DIAG_PUSH/POP, RAPIDJSON_DIAG_OFF
