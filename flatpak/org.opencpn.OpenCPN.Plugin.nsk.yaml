@@ -13,7 +13,7 @@ finish-args:
   - --device=all
 
 modules:
-  - @include libs/flatpak/marnav.yaml
+  - '@include libs/flatpak/marnav.yaml'
   - name: nsk
     no-autogen: true
     buildsystem: cmake
