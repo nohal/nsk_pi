@@ -12,4 +12,4 @@
     - type: git
       url: https://github.com/mariokonrad/marnav.git
       # tag: v0.14.0
-      commit: c4ae147
+      commit: 01c55205736fcc8157891b84e3efe387a221ff3a
