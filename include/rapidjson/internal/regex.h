@@ -688,7 +688,7 @@ private:
             next->Clear();
             matched = false;
             for (const SizeType* s = current->template Bottom<SizeType>();
-                 s != current->template End<SizeType>(); ++s) {
+                s != current->template End<SizeType>(); ++s) {
                 const State& sr = GetState(*s);
                 if (sr.codepoint == codepoint
                     || sr.codepoint == kAnyCharacterClass

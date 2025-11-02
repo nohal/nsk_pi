@@ -552,7 +552,7 @@ public:
         \return Whether the parsing is successful.
     */
     template <unsigned parseFlags, typename InputStream, typename Handler>
-    ParseResult Parse(InputStream & is, Handler & handler)
+    ParseResult Parse(InputStream& is, Handler& handler)
     {
         if (parseFlags & kParseIterativeFlag)
             return IterativeParse<parseFlags>(is, handler);
@@ -594,7 +594,7 @@ public:
         \return Whether the parsing is successful.
     */
     template <typename InputStream, typename Handler>
-    ParseResult Parse(InputStream & is, Handler & handler)
+    ParseResult Parse(InputStream& is, Handler& handler)
     {
         return Parse<kParseDefaultFlags>(is, handler);
     }
@@ -636,7 +636,7 @@ private:
     };
 
     template <unsigned parseFlags, typename InputStream>
-    void SkipWhitespaceAndComments(InputStream & is)
+    void SkipWhitespaceAndComments(InputStream& is)
     {
         SkipWhitespace(is);
 
@@ -667,7 +667,7 @@ private:
 
     // Parse object: { string : value, ... }
     template <unsigned parseFlags, typename InputStream, typename Handler>
-    void ParseObject(InputStream & is, Handler & handler)
+    void ParseObject(InputStream& is, Handler& handler)
     {
         RAPIDJSON_ASSERT(is.Peek() == '{');
         is.Take(); // Skip '{'
@@ -740,7 +740,7 @@ private:
 
     // Parse array: [ value, ... ]
     template <unsigned parseFlags, typename InputStream, typename Handler>
-    void ParseArray(InputStream & is, Handler & handler)
+    void ParseArray(InputStream& is, Handler& handler)
     {
         RAPIDJSON_ASSERT(is.Peek() == '[');
         is.Take(); // Skip '['
@@ -789,7 +789,7 @@ private:
     }
 
     template <unsigned parseFlags, typename InputStream, typename Handler>
-    void ParseNull(InputStream & is, Handler & handler)
+    void ParseNull(InputStream& is, Handler& handler)
     {
         RAPIDJSON_ASSERT(is.Peek() == 'n');
         is.Take();
@@ -803,7 +803,7 @@ private:
     }
 
     template <unsigned parseFlags, typename InputStream, typename Handler>
-    void ParseTrue(InputStream & is, Handler & handler)
+    void ParseTrue(InputStream& is, Handler& handler)
     {
         RAPIDJSON_ASSERT(is.Peek() == 't');
         is.Take();
@@ -817,7 +817,7 @@ private:
     }
 
     template <unsigned parseFlags, typename InputStream, typename Handler>
-    void ParseFalse(InputStream & is, Handler & handler)
+    void ParseFalse(InputStream& is, Handler& handler)
     {
         RAPIDJSON_ASSERT(is.Peek() == 'f');
         is.Take();
@@ -832,7 +832,7 @@ private:
 
     template <typename InputStream>
     RAPIDJSON_FORCEINLINE static bool Consume(
-        InputStream & is, typename InputStream::Ch expect)
+        InputStream& is, typename InputStream::Ch expect)
     {
         if (RAPIDJSON_LIKELY(is.Peek() == expect)) {
             is.Take();
@@ -844,7 +844,7 @@ private:
     // Helper function to parse four hexidecimal digits in \uXXXX in
     // ParseString().
     template <typename InputStream>
-    unsigned ParseHex4(InputStream & is, size_t escapeOffset)
+    unsigned ParseHex4(InputStream& is, size_t escapeOffset)
     {
         unsigned codepoint = 0;
         for (int i = 0; i < 4; i++) {
@@ -903,7 +903,7 @@ private:
     // Parse string and generate String event. Different code paths for
     // kParseInsituFlag.
     template <unsigned parseFlags, typename InputStream, typename Handler>
-    void ParseString(InputStream & is, Handler & handler, bool isKey = false)
+    void ParseString(InputStream& is, Handler& handler, bool isKey = false)
     {
         internal::StreamLocalCopy<InputStream> copy(is);
         InputStream& s(copy.s);
@@ -943,7 +943,7 @@ private:
     template <unsigned parseFlags, typename SEncoding, typename TEncoding,
         typename InputStream, typename OutputStream>
     RAPIDJSON_FORCEINLINE void ParseStringToStream(
-        InputStream & is, OutputStream & os)
+        InputStream& is, OutputStream& os)
     {
 //!@cond RAPIDJSON_HIDDEN_FROM_DOXYGEN
 #define Z16 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -1311,7 +1311,7 @@ private:
     };
 
     template <unsigned parseFlags, typename InputStream, typename Handler>
-    void ParseNumber(InputStream & is, Handler & handler)
+    void ParseNumber(InputStream& is, Handler& handler)
     {
         internal::StreamLocalCopy<InputStream> copy(is);
         NumberStream<InputStream,
@@ -1595,7 +1595,7 @@ private:
 
     // Parse any JSON value
     template <unsigned parseFlags, typename InputStream, typename Handler>
-    void ParseValue(InputStream & is, Handler & handler)
+    void ParseValue(InputStream& is, Handler& handler)
     {
         switch (is.Peek()) {
         case 'n':
@@ -1885,7 +1885,7 @@ private:
     template <unsigned parseFlags, typename InputStream, typename Handler>
     RAPIDJSON_FORCEINLINE IterativeParsingState Transit(
         IterativeParsingState src, Token token, IterativeParsingState dst,
-        InputStream & is, Handler & handler)
+        InputStream& is, Handler& handler)
     {
         (void)token;
 
@@ -2053,7 +2053,7 @@ private:
     }
 
     template <typename InputStream>
-    void HandleError(IterativeParsingState src, InputStream & is)
+    void HandleError(IterativeParsingState src, InputStream& is)
     {
         if (HasParseError()) {
             // Error flag has been set.
@@ -2093,7 +2093,7 @@ private:
     }
 
     template <unsigned parseFlags, typename InputStream, typename Handler>
-    ParseResult IterativeParse(InputStream & is, Handler & handler)
+    ParseResult IterativeParse(InputStream& is, Handler& handler)
     {
         parseResult_.Clear();
         ClearStackOnExit scope(*this);

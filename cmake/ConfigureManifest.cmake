@@ -13,7 +13,7 @@
 #
 # @include are expected in lines like:
 #
-# * @include libs/glu.yaml
+# * @include opencpn-libs/flatpak/glu.yaml
 #
 # Copy the contents of the filename mentioned after @include into the new
 # manifest. - Filename is relative to the project top-level directory. - The
@@ -56,10 +56,10 @@ function(configure_manifest manifest new_manifest_path)
     if("${line}" MATCHES "[ \t]*\#")
       continue()
     endif()
-    if("${line}" MATCHES "'@include")
+    if("${line}" MATCHES "@include")
       string(REGEX REPLACE "-.*" "" indent ${line})
       string(REGEX REPLACE ".*@include" "" path "${line}")
-      string(REGEX REPLACE "'$" "" path "${path}")
+      string(REPLACE "'" " " path "${path}")
       string(STRIP "${path}" path)
       set(path ${CMAKE_SOURCE_DIR}/${path})
       file(STRINGS ${path} module_lines)
