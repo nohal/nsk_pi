@@ -86,6 +86,10 @@ macro(late_init)
 endmacro()
 
 macro(add_plugin_libraries)
+  if(APPLE)
+    add_subdirectory(opencpn-libs/marnav)
+    target_link_libraries(${PACKAGE_NAME} ocpn::marnav)
+  else(APPLE)
   find_path(MARNAV_HEADER marnav)
   find_library(MARNAV_LIB libmarnav.a marnav)
   if("${MARNAV_HEADER}" MATCHES ".*-NOTFOUND" OR MARNAV_LIB MATCHES
@@ -102,6 +106,7 @@ macro(add_plugin_libraries)
     message(STATUS "Using marnav from ${MARNAV_HEADER} ${MARNAV_LIB}")
     target_include_directories(${PACKAGE_NAME} PUBLIC ${MARNAV_HEADER})
     target_link_libraries(${PACKAGE_NAME} ${MARNAV_LIB})
+  endif()
   endif()
 endmacro()
 
