@@ -26,7 +26,7 @@ set(OCPN_RELEASE_REPO
 # -------  Plugin setup --------
 #
 set(PKG_NAME NSK_pi)
-set(PKG_VERSION "0.2.3")
+set(PKG_VERSION "0.2.4")
 set(PKG_PRERELEASE "") # Empty, or a tag like 'beta'
 
 set(DISPLAY_NAME NSK) # Dialogs, installer artifacts, ...
