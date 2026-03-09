@@ -1112,7 +1112,7 @@ public:
     RAPIDJSON_DISABLEIF_RETURN(
         (internal::OrExpr<internal::IsPointer<T>, internal::IsGenericValue<T>>),
         (bool))
-    operator==(const T & rhs) const
+    operator==(const T& rhs) const
     {
         return *this == GenericValue(rhs);
     }
@@ -1134,7 +1134,7 @@ public:
      */
     template <typename T>
     RAPIDJSON_DISABLEIF_RETURN((internal::IsGenericValue<T>), (bool))
-    operator!=(const T & rhs) const
+    operator!=(const T& rhs) const
     {
         return !(*this == rhs);
     }
@@ -1144,7 +1144,7 @@ public:
      */
     template <typename T>
     friend RAPIDJSON_DISABLEIF_RETURN((internal::IsGenericValue<T>),
-        (bool)) operator==(const T & lhs, const GenericValue & rhs)
+        (bool)) operator==(const T& lhs, const GenericValue& rhs)
     {
         return rhs == lhs;
     }
@@ -1154,7 +1154,7 @@ public:
      */
     template <typename T>
     friend RAPIDJSON_DISABLEIF_RETURN((internal::IsGenericValue<T>),
-        (bool)) operator!=(const T & lhs, const GenericValue & rhs)
+        (bool)) operator!=(const T& lhs, const GenericValue& rhs)
     {
         return !(rhs == lhs);
     }
@@ -1300,7 +1300,7 @@ public:
         (internal::NotExpr<
             internal::IsSame<typename internal::RemoveConst<T>::Type, Ch>>),
         (GenericValue&))
-    operator[](T * name)
+    operator[](T* name)
     {
         GenericValue n(StringRef(name));
         return (*this)[n];
@@ -1310,7 +1310,7 @@ public:
         (internal::NotExpr<
             internal::IsSame<typename internal::RemoveConst<T>::Type, Ch>>),
         (const GenericValue&))
-    operator[](T * name) const
+    operator[](T* name) const
     {
         return const_cast<GenericValue&>(*this)[name];
     }

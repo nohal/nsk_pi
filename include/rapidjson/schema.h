@@ -591,8 +591,7 @@ public:
                             SizeType targetIndex;
                             if (FindPropertyIndex(*targetItr, &targetIndex))
                                 properties_[sourceIndex]
-                                    .dependencies[targetIndex]
-                                    = true;
+                                    .dependencies[targetIndex] = true;
                         }
                     } else if (itr->value.IsObject()) {
                         hasSchemaDependencies_ = true;
@@ -1543,8 +1542,7 @@ public:
 
     virtual ~IGenericRemoteSchemaDocumentProvider() { }
     virtual const SchemaDocumentType* GetRemoteDocument(
-        const Ch* uri, SizeType length)
-        = 0;
+        const Ch* uri, SizeType length) = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
