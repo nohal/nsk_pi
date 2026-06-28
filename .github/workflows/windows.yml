@@ -34,7 +34,7 @@ jobs:
             runner: windows-latest
             no_sudo: 1
             # TODO: Tests don't link on Windows, investigate and fix later
-            cmake_defines: -DWITH_TESTS=OFF -DCMAKE_CXX_STANDARD=17
+            cmake_defines: -T v143 -DCMAKE_GENERATOR_PLATFORM=win32 -DWITH_TESTS=OFF -DCMAKE_CXX_STANDARD=17
 
     env:
       wxGTK_VERSION: ${{ matrix.gtk_version && matrix.gtk_version || 3 }}
@@ -52,7 +52,7 @@ jobs:
       # required for CMake to find Ninja
       - name: "[Windows] Set up MSVC Developer Command Prompt"
         if: runner.os == 'Windows'
-        uses: seanmiddleditch/gha-setup-vsdevenv@v4
+        uses: seanmiddleditch/gha-setup-vsdevenv@v3
         with:
           host_arch: x86
           arch: win32
@@ -61,11 +61,7 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           call buildwin/win_deps.bat
-          env
-          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
-          env
-          #cmake -A win32 -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{ matrix.cmake_defines }}
-          cmake -G Ninja -B build -DWITH_TESTS=OFF -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{ matrix.cmake_defines }}
+          cmake -A win32 -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{ matrix.cmake_defines }}
           cmake --build build --config ${{env.BUILD_TYPE}}
         shell: cmd
       - name: "[Windows] Publish to Cloudsmith"
