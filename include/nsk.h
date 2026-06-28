@@ -34,13 +34,40 @@
 #include <marnav/nmea/io.hpp>
 #include <marnav/nmea/nmea.hpp>
 // Sentences supported
+#include <marnav/nmea/apb.hpp>
+#include <marnav/nmea/bod.hpp>
+#include <marnav/nmea/bwc.hpp>
+#include <marnav/nmea/bwr.hpp>
+#include <marnav/nmea/dbk.hpp>
 #include <marnav/nmea/dbt.hpp>
+#include <marnav/nmea/dpt.hpp>
+#include <marnav/nmea/dsc.hpp>
 #include <marnav/nmea/gga.hpp>
 #include <marnav/nmea/gll.hpp>
+#include <marnav/nmea/gns.hpp>
 #include <marnav/nmea/gsa.hpp>
 #include <marnav/nmea/gsv.hpp>
+#include <marnav/nmea/hdg.hpp>
+#include <marnav/nmea/hdm.hpp>
+#include <marnav/nmea/hdt.hpp>
+#include <marnav/nmea/hsc.hpp>
+#include <marnav/nmea/mta.hpp>
+#include <marnav/nmea/mtw.hpp>
+#include <marnav/nmea/mwd.hpp>
+#include <marnav/nmea/mwv.hpp>
+#include <marnav/nmea/rmb.hpp>
 #include <marnav/nmea/rmc.hpp>
+#include <marnav/nmea/rot.hpp>
+#include <marnav/nmea/rpm.hpp>
+#include <marnav/nmea/rsa.hpp>
+#include <marnav/nmea/vdr.hpp>
+#include <marnav/nmea/vhw.hpp>
+#include <marnav/nmea/vlw.hpp>
+#include <marnav/nmea/vpw.hpp>
 #include <marnav/nmea/vtg.hpp>
+#include <marnav/nmea/vwr.hpp>
+#include <marnav/nmea/xte.hpp>
+#include <marnav/nmea/zda.hpp>
 
 #include "rapidjson/document.h"
 
@@ -160,6 +187,87 @@ private:
     /// @param values_array SignalK values array object reference
     /// @param allocator Allocator reference
     void ProcessSentence(std::unique_ptr<marnav::nmea::dbt> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::dbk> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::dsc> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::dpt> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::gns> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::hdg> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::hdm> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::hdt> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::hsc> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::mta> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::mtw> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::mwd> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::mwv> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::rmb> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::rot> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::rpm> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::rsa> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::vdr> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::vhw> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::vlw> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::vpw> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::vwr> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::xte> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::zda> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::bod> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::bwc> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::bwr> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::apb> s,
         rapidjson::Value& values_array,
         rapidjson::Document::AllocatorType& allocator);
 

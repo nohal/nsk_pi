@@ -23,7 +23,8 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${Catch2_SOURCE_DIR}/extras")
 
-set(SOURCES_TESTS opencpn_mock.h utils.h 001-gll.cpp ${SRC_N})
+set(SOURCES_TESTS opencpn_mock.h utils.h 001-gll.cpp 002-extended-sentences.cpp
+                  ${SRC_N})
 
 include_directories("${CMAKE_SOURCE_DIR}/include" ${wxWidgets_INCLUDE_DIR})
 
