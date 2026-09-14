@@ -155,24 +155,25 @@ enum ParseFlag {
     kParseValidateEncodingFlag = 2, //!< Validate encoding of JSON strings.
     kParseIterativeFlag = 4, //!< Iterative(constant complexity in terms of
                              //!< function call stack size) parsing.
-    kParseStopWhenDoneFlag
-    = 8, //!< After parsing a complete JSON root from stream, stop further
-         //!< processing the rest of stream. When this flag is used, parser will
-         //!< not generate kParseErrorDocumentRootNotSingular error.
-    kParseFullPrecisionFlag
-    = 16, //!< Parse number in full precision (but slower).
-    kParseCommentsFlag
-    = 32, //!< Allow one-line (//) and multi-line (/**/) comments.
-    kParseNumbersAsStringsFlag
-    = 64, //!< Parse all numbers (ints/doubles) as strings.
-    kParseTrailingCommasFlag
-    = 128, //!< Allow trailing commas at the end of objects and arrays.
-    kParseNanAndInfFlag
-    = 256, //!< Allow parsing NaN, Inf, Infinity, -Inf and -Infinity as doubles.
-    kParseDefaultFlags
-    = RAPIDJSON_PARSE_DEFAULT_FLAGS //!< Default parse flags. Can be customized
-                                    //!< by defining
-                                    //!< RAPIDJSON_PARSE_DEFAULT_FLAGS
+    kParseStopWhenDoneFlag = 8, //!< After parsing a complete JSON root from
+                                //!< stream, stop further processing the rest of
+                                //!< stream. When this flag is used, parser will
+                                //!< not generate
+                                //!< kParseErrorDocumentRootNotSingular error.
+    kParseFullPrecisionFlag = 16, //!< Parse number in full precision (but
+                                  //!< slower).
+    kParseCommentsFlag = 32, //!< Allow one-line (//) and multi-line (/**/)
+                             //!< comments.
+    kParseNumbersAsStringsFlag = 64, //!< Parse all numbers (ints/doubles) as
+                                     //!< strings.
+    kParseTrailingCommasFlag = 128, //!< Allow trailing commas at the end of
+                                    //!< objects and arrays.
+    kParseNanAndInfFlag = 256, //!< Allow parsing NaN, Inf, Infinity, -Inf and
+                               //!< -Infinity as doubles.
+    kParseDefaultFlags = RAPIDJSON_PARSE_DEFAULT_FLAGS //!< Default parse flags.
+                                                       //!< Can be customized by
+                                                       //!< defining
+                                                       //!< RAPIDJSON_PARSE_DEFAULT_FLAGS
 };
 
 ///////////////////////////////////////////////////////////////////////////////
