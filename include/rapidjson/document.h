@@ -2391,8 +2391,8 @@ private:
         kTrueFlag = kTrueType | kBoolFlag,
         kFalseFlag = kFalseType | kBoolFlag,
         kNumberIntFlag = kNumberType | kNumberFlag | kIntFlag | kInt64Flag,
-        kNumberUintFlag
-        = kNumberType | kNumberFlag | kUintFlag | kUint64Flag | kInt64Flag,
+        kNumberUintFlag = kNumberType | kNumberFlag | kUintFlag | kUint64Flag
+            | kInt64Flag,
         kNumberInt64Flag = kNumberType | kNumberFlag | kInt64Flag,
         kNumberUint64Flag = kNumberType | kNumberFlag | kUint64Flag,
         kNumberDoubleFlag = kNumberType | kNumberFlag | kDoubleFlag,
@@ -2400,8 +2400,8 @@ private:
             | kUintFlag | kUint64Flag | kDoubleFlag,
         kConstStringFlag = kStringType | kStringFlag,
         kCopyStringFlag = kStringType | kStringFlag | kCopyFlag,
-        kShortStringFlag
-        = kStringType | kStringFlag | kCopyFlag | kInlineStrFlag,
+        kShortStringFlag = kStringType | kStringFlag | kCopyFlag
+            | kInlineStrFlag,
         kObjectFlag = kObjectType,
         kArrayFlag = kArrayType,
 
