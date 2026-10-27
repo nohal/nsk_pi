@@ -176,14 +176,14 @@ void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::gga> s,
     rapidjson::Value& values_array,
     rapidjson::Document::AllocatorType& allocator)
 {
-    static const char* quality[] = { "no GPS", "GNSS Fix", "DGNSS fix",
-        "Precise GNSS", "RTK fixed integer", "RTK float", "Estimated (DR) mode",
-        "Manual input", "Simulator mode", "Error" };
     if (s->get_lat().has_value() && s->get_lon().has_value()) {
         AddPosition(values_array, allocator, "navigation.position",
             s->get_lat()->get(), s->get_lon()->get());
     }
     if (s->get_quality_indicator().has_value()) {
+        static const char* quality[] = { "no GPS", "GNSS Fix", "DGNSS fix",
+            "Precise GNSS", "RTK fixed integer", "RTK float",
+            "Estimated (DR) mode", "Manual input", "Simulator mode", "Error" };
         const auto q = static_cast<uint32_t>(*s->get_quality_indicator());
         if (q < std::size(quality)) {
             AddString(values_array, allocator, "navigation.gnss.methodQuality",
