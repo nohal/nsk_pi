@@ -28,13 +28,18 @@
 #define _NSK_H_
 
 #include <chrono>
+#include <optional>
 #include <set>
+#include <vector>
 
 #include <marnav/nmea/angle.hpp>
 #include <marnav/nmea/io.hpp>
 #include <marnav/nmea/nmea.hpp>
 // Sentences supported
+#include <marnav/ais/ais.hpp>
+#include <marnav/nmea/aam.hpp>
 #include <marnav/nmea/apb.hpp>
+#include <marnav/nmea/bec.hpp>
 #include <marnav/nmea/bod.hpp>
 #include <marnav/nmea/bwc.hpp>
 #include <marnav/nmea/bwr.hpp>
@@ -51,23 +56,35 @@
 #include <marnav/nmea/hdm.hpp>
 #include <marnav/nmea/hdt.hpp>
 #include <marnav/nmea/hsc.hpp>
+#include <marnav/nmea/mob.hpp>
 #include <marnav/nmea/mta.hpp>
 #include <marnav/nmea/mtw.hpp>
 #include <marnav/nmea/mwd.hpp>
 #include <marnav/nmea/mwv.hpp>
+#include <marnav/nmea/osd.hpp>
+#include <marnav/nmea/pgrmz.hpp>
+#include <marnav/nmea/rma.hpp>
 #include <marnav/nmea/rmb.hpp>
 #include <marnav/nmea/rmc.hpp>
 #include <marnav/nmea/rot.hpp>
 #include <marnav/nmea/rpm.hpp>
 #include <marnav/nmea/rsa.hpp>
+#include <marnav/nmea/stalk.hpp>
+#include <marnav/nmea/vbw.hpp>
+#include <marnav/nmea/vdm.hpp>
+#include <marnav/nmea/vdo.hpp>
 #include <marnav/nmea/vdr.hpp>
 #include <marnav/nmea/vhw.hpp>
 #include <marnav/nmea/vlw.hpp>
 #include <marnav/nmea/vpw.hpp>
 #include <marnav/nmea/vtg.hpp>
 #include <marnav/nmea/vwr.hpp>
+#include <marnav/nmea/wcv.hpp>
+#include <marnav/nmea/xdr.hpp>
 #include <marnav/nmea/xte.hpp>
+#include <marnav/nmea/xtr.hpp>
 #include <marnav/nmea/zda.hpp>
+#include <marnav/nmea/ztg.hpp>
 
 #include "rapidjson/document.h"
 
@@ -270,6 +287,64 @@ private:
     void ProcessSentence(std::unique_ptr<marnav::nmea::apb> s,
         rapidjson::Value& values_array,
         rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::aam> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::bec> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::mob> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::osd> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::pgrmz> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::rma> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::stalk> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::vbw> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    /// @brief Process the VDM and VDO (AIS) NMEA0183 sentences, collecting
+    /// multi-fragment messages and setting the delta context to the sender
+    void ProcessSentence(std::unique_ptr<marnav::nmea::vdm> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::wcv> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::xdr> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::xtr> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+    void ProcessSentence(std::unique_ptr<marnav::nmea::ztg> s,
+        rapidjson::Value& values_array,
+        rapidjson::Document::AllocatorType& allocator);
+
+    /// Context of the delta being produced, empty means self
+    std::string m_context;
+    /// AIS payload fragments collected so far (payload, fill bits)
+    std::vector<std::pair<std::string, uint32_t>> m_ais_fragments;
+    /// GSV satellites collected so far from a multi-sentence group
+    std::vector<marnav::nmea::gsv::satellite_info> m_gsv_sats;
+    /// Number of the GSV sentence expected next in the group
+    uint32_t m_gsv_next = 1;
+    /// Last date ("YYYY-MM-DD") and time ("THH:MM:SS.000Z") received over
+    /// SeaTalk, combined into navigation.datetime
+    std::string m_seatalk_date;
+    std::string m_seatalk_time;
+    /// Last position received over SeaTalk (latitude and longitude come in
+    /// separate datagrams)
+    std::optional<double> m_seatalk_lat;
+    std::optional<double> m_seatalk_lon;
 
 public:
     /// @brief Constructor

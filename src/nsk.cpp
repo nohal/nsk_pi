@@ -31,11 +31,26 @@
 #include <fstream>
 
 #include <chrono>
+#include <cmath>
+#include <cstring>
+#include <ctime>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#ifdef _WIN32
+#define strcasecmp _stricmp
+#else
+#include <strings.h>
+#endif
 
 #include "nsk.h"
+#include <marnav/ais/message_01.hpp>
+#include <marnav/ais/message_04.hpp>
+#include <marnav/ais/message_05.hpp>
+#include <marnav/ais/message_18.hpp>
+#include <marnav/ais/message_19.hpp>
+#include <marnav/ais/message_21.hpp>
+#include <marnav/ais/message_24.hpp>
 #include <ocpn_plugin.h>
 
 PLUGIN_BEGIN_NAMESPACE
@@ -73,6 +88,74 @@ void AddString(rapidjson::Value& values_array,
         "value", Value(value.c_str(), value.length(), allocator), allocator);
     values_array.PushBack(val, allocator);
 }
+
+void AddValue(rapidjson::Value& values_array,
+    rapidjson::Document::AllocatorType& allocator, const char* path,
+    Value& value)
+{
+    Value val(kObjectType);
+    val.AddMember("path", Value(path, allocator), allocator);
+    val.AddMember("value", value, allocator);
+    values_array.PushBack(val, allocator);
+}
+
+void AddPosition(rapidjson::Value& values_array,
+    rapidjson::Document::AllocatorType& allocator, const char* path, double lat,
+    double lon)
+{
+    Value pos(kObjectType);
+    pos.AddMember("latitude", lat, allocator);
+    pos.AddMember("longitude", lon, allocator);
+    AddValue(values_array, allocator, path, pos);
+}
+
+/// Notification object as produced by the SignalK NMEA0183 parser
+void AddNotification(rapidjson::Value& values_array,
+    rapidjson::Document::AllocatorType& allocator, const char* path,
+    const std::string& message, const char* state = "alarm")
+{
+    Value method(kArrayType);
+    method.PushBack("sound", allocator);
+    method.PushBack("visual", allocator);
+    Value n(kObjectType);
+    n.AddMember("method", method, allocator);
+    n.AddMember("state", Value(state, allocator), allocator);
+    n.AddMember("message", Value(message.c_str(), allocator), allocator);
+    AddValue(values_array, allocator, path, n);
+}
+
+/// Signed magnetic variation/deviation in degrees (East positive)
+double MagneticDegrees(const magnetic& m)
+{
+    return m.hemisphere() == direction::west ? -m.angle() : m.angle();
+}
+
+/// ISO8601 UTC timestamp from NMEA date and time
+std::string IsoDateTime(const nmea::date& d, const nmea::time& t)
+{
+    auto year = d.year() < 100 ? d.year() + 2000 : d.year();
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%04u-%02u-%02uT%02u:%02u:%02u.%03uZ", year,
+        static_cast<unsigned int>(d.mon()), d.day(), t.hour(), t.minutes(),
+        t.seconds(), t.milliseconds());
+    return buf;
+}
+
+/// Wind angle normalized to -180..180 degrees
+double WindAngle(double deg)
+{
+    deg = std::fmod(deg, 360.0);
+    return deg > 180.0 ? deg - 360.0 : deg;
+}
+
+std::string MmsiContext(const utils::mmsi& mmsi, const char* prefix)
+{
+    char buf[64];
+    snprintf(buf, sizeof(buf), "%surn:mrn:imo:mmsi:%09u", prefix,
+        static_cast<unsigned int>(
+            static_cast<marnav::utils::mmsi::value_type>(mmsi)));
+    return buf;
+}
 }
 
 /**
@@ -93,23 +176,43 @@ void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::gga> s,
     rapidjson::Value& values_array,
     rapidjson::Document::AllocatorType& allocator)
 {
-    Value val(kObjectType);
-    Value pos(kObjectType);
     if (s->get_lat().has_value() && s->get_lon().has_value()) {
-        pos.AddMember("latitude", s->get_lat()->get(), allocator);
-        pos.AddMember("longitude", s->get_lon()->get(), allocator);
-        if (s->get_altitude().has_value()) {
-            pos.AddMember("altitude", s->get_altitude()->value(), allocator);
-        }
-        val.AddMember("path", "navigation.position", allocator);
-        val.AddMember("value", pos, allocator);
-        values_array.PushBack(val, allocator);
+        AddPosition(values_array, allocator, "navigation.position",
+            s->get_lat()->get(), s->get_lon()->get());
     }
-    if (s->get_time().has_value()) {
-        Value utc(kObjectType);
-        utc.AddMember("path", "environment.time", allocator);
-        utc.AddMember("value", to_string(s->get_time()), allocator);
-        values_array.PushBack(utc, allocator);
+    if (s->get_quality_indicator().has_value()) {
+        static const char* quality[] = { "no GPS", "GNSS Fix", "DGNSS fix",
+            "Precise GNSS", "RTK fixed integer", "RTK float",
+            "Estimated (DR) mode", "Manual input", "Simulator mode", "Error" };
+        const auto q = static_cast<uint32_t>(*s->get_quality_indicator());
+        if (q < std::size(quality)) {
+            AddString(values_array, allocator, "navigation.gnss.methodQuality",
+                quality[q]);
+        }
+    }
+    if (s->get_n_satellites().has_value()) {
+        AddNumber(values_array, allocator, "navigation.gnss.satellites",
+            *s->get_n_satellites());
+    }
+    if (s->get_altitude().has_value()) {
+        AddNumber(values_array, allocator, "navigation.gnss.antennaAltitude",
+            s->get_altitude()->get<units::meters>().value());
+    }
+    if (s->get_hor_dilution().has_value()) {
+        AddNumber(values_array, allocator, "navigation.gnss.horizontalDilution",
+            *s->get_hor_dilution());
+    }
+    if (s->get_geodial_separation().has_value()) {
+        AddNumber(values_array, allocator, "navigation.gnss.geoidalSeparation",
+            s->get_geodial_separation()->get<units::meters>().value());
+    }
+    if (s->get_dgps_age().has_value()) {
+        AddNumber(values_array, allocator, "navigation.gnss.differentialAge",
+            *s->get_dgps_age());
+    }
+    if (s->get_dgps_ref().has_value()) {
+        AddNumber(values_array, allocator,
+            "navigation.gnss.differentialReference", *s->get_dgps_ref());
     }
 }
 
@@ -152,45 +255,72 @@ void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::gsv> s,
     rapidjson::Value& values_array,
     rapidjson::Document::AllocatorType& allocator)
 {
-    Value val(kObjectType);
-    val.AddMember("path", "navigation.gnss.satellites", allocator);
-    val.AddMember("value", s->get_n_satellites_in_view(), allocator);
-    values_array.PushBack(val, allocator);
+    // Satellites in view are spread over a group of sentences, publish once
+    // the last one of the group arrives
+    if (s->get_message_number() != m_gsv_next) {
+        m_gsv_sats.clear();
+        m_gsv_next = 1;
+        if (s->get_message_number() != 1) {
+            return;
+        }
+    }
+    for (int i = 0; i < 4; ++i) {
+        if (s->get_sat(i).has_value()) {
+            m_gsv_sats.push_back(*s->get_sat(i));
+        }
+    }
+    ++m_gsv_next;
+    if (s->get_message_number() < s->get_n_messages()) {
+        return;
+    }
+    Value sats(kArrayType);
+    for (const auto& sat : m_gsv_sats) {
+        Value v(kObjectType);
+        v.AddMember("id", sat.prn, allocator);
+        v.AddMember("elevation", deg2rad(sat.elevation), allocator);
+        v.AddMember("azimuth", deg2rad(sat.azimuth), allocator);
+        if (sat.snr.has_value()) {
+            v.AddMember("SNR", *sat.snr, allocator);
+        } else {
+            v.AddMember("SNR", Value(), allocator);
+        }
+        sats.PushBack(v, allocator);
+    }
+    Value inview(kObjectType);
+    inview.AddMember("count", s->get_n_satellites_in_view(), allocator);
+    inview.AddMember("satellites", sats, allocator);
+    AddValue(
+        values_array, allocator, "navigation.gnss.satellitesInView", inview);
+    m_gsv_sats.clear();
+    m_gsv_next = 1;
 }
 
 void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::rmc> s,
     rapidjson::Value& values_array,
     rapidjson::Document::AllocatorType& allocator)
 {
+    if (s->get_status().has_value() && *s->get_status() == 'V') {
+        return;
+    }
     if (s->get_lat().has_value() && s->get_lon().has_value()) {
-        Value val(kObjectType);
-        Value pos(kObjectType);
-        pos.AddMember("latitude", s->get_lat()->get(), allocator);
-        pos.AddMember("longitude", s->get_lon()->get(), allocator);
-        val.AddMember("path", "navigation.position", allocator);
-        val.AddMember("value", pos, allocator);
-        values_array.PushBack(val, allocator);
+        AddPosition(values_array, allocator, "navigation.position",
+            s->get_lat()->get(), s->get_lon()->get());
     }
     if (s->get_heading().has_value()) {
-        Value hdg(kObjectType);
-        hdg.AddMember("path", "navigation.headingTrue", allocator);
-        hdg.AddMember("value", deg2rad(*s->get_heading()), allocator);
-        values_array.PushBack(hdg, allocator);
+        AddNumber(values_array, allocator, "navigation.courseOverGroundTrue",
+            deg2rad(*s->get_heading()));
     }
-
-    auto rmc_sog = s->get_sog();
-    if (rmc_sog.has_value()) {
-        Value sog(kObjectType);
-        sog.AddMember("path", "navigation.speedOverGround", allocator);
-        sog.AddMember("value",
-            kn2ms(rmc_sog->get<marnav::units::knots>().value()), allocator);
-        values_array.PushBack(sog, allocator);
+    if (s->get_sog().has_value()) {
+        AddNumber(values_array, allocator, "navigation.speedOverGround",
+            kn2ms(s->get_sog()->get<marnav::units::knots>().value()));
     }
-    if (s->get_time_utc().has_value()) {
-        Value utc(kObjectType);
-        utc.AddMember("path", "navigation.datetime", allocator);
-        utc.AddMember("value", to_string(s->get_time_utc()), allocator);
-        values_array.PushBack(utc, allocator);
+    if (s->get_mag().has_value()) {
+        AddNumber(values_array, allocator, "navigation.magneticVariation",
+            deg2rad(MagneticDegrees(*s->get_mag())));
+    }
+    if (s->get_time_utc().has_value() && s->get_date().has_value()) {
+        AddString(values_array, allocator, "navigation.datetime",
+            IsoDateTime(*s->get_date(), *s->get_time_utc()));
     }
 }
 
@@ -199,27 +329,20 @@ void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::vtg> s,
     rapidjson::Document::AllocatorType& allocator)
 {
     if (s->get_track_true().has_value()) {
-        Value hdt(kObjectType);
-        hdt.AddMember("path", "navigation.headingTrue", allocator);
-        hdt.AddMember("value", deg2rad(s->get_track_true().value()), allocator);
-        values_array.PushBack(hdt, allocator);
+        AddNumber(values_array, allocator, "navigation.courseOverGroundTrue",
+            deg2rad(*s->get_track_true()));
     }
     if (s->get_track_magn().has_value()) {
-        Value trm(kObjectType);
-        trm.AddMember("path", "navigation.headingMagnetic", allocator);
-        trm.AddMember("value", deg2rad(s->get_track_magn().value()), allocator);
-        values_array.PushBack(trm, allocator);
+        AddNumber(values_array, allocator,
+            "navigation.courseOverGroundMagnetic",
+            deg2rad(*s->get_track_magn()));
     }
     if (s->get_speed_kn().has_value()) {
-        Value sog(kObjectType);
-        sog.AddMember("path", "navigation.speedOverGround", allocator);
-        sog.AddMember("value", kn2ms(s->get_speed_kn()->value()), allocator);
-        values_array.PushBack(sog, allocator);
+        AddNumber(values_array, allocator, "navigation.speedOverGround",
+            kn2ms(s->get_speed_kn()->value()));
     } else if (s->get_speed_kmh().has_value()) {
-        Value sog(kObjectType);
-        sog.AddMember("path", "navigation.speedOverGround", allocator);
-        sog.AddMember("value", kmh2ms(s->get_speed_kmh()->value()), allocator);
-        values_array.PushBack(sog, allocator);
+        AddNumber(values_array, allocator, "navigation.speedOverGround",
+            kmh2ms(s->get_speed_kmh()->value()));
     }
 }
 
@@ -345,9 +468,32 @@ void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::hdg> s,
     rapidjson::Value& values_array,
     rapidjson::Document::AllocatorType& allocator)
 {
+    const auto dev = s->get_magn_dev().has_value()
+        ? std::optional<double>(MagneticDegrees(*s->get_magn_dev()))
+        : std::nullopt;
+    const auto var = s->get_magn_var().has_value()
+        ? std::optional<double>(MagneticDegrees(*s->get_magn_var()))
+        : std::nullopt;
     if (s->get_heading().has_value()) {
+        const auto magnetic = *s->get_heading() + dev.value_or(0.0);
         AddNumber(values_array, allocator, "navigation.headingMagnetic",
-            deg2rad(*s->get_heading()));
+            deg2rad(magnetic));
+        if (dev.has_value()) {
+            AddNumber(values_array, allocator, "navigation.headingCompass",
+                deg2rad(*s->get_heading()));
+        }
+        if (var.has_value()) {
+            AddNumber(values_array, allocator, "navigation.headingTrue",
+                deg2rad(magnetic + *var));
+        }
+    }
+    if (var.has_value()) {
+        AddNumber(values_array, allocator, "navigation.magneticVariation",
+            deg2rad(*var));
+    }
+    if (dev.has_value()) {
+        AddNumber(values_array, allocator, "navigation.magneticDeviation",
+            deg2rad(*dev));
     }
 }
 
@@ -429,19 +575,20 @@ void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::mwv> s,
     rapidjson::Document::AllocatorType& allocator)
 {
     if (!s->get_angle().has_value() || !s->get_speed().has_value()
-        || !s->get_angle_ref().has_value()) {
+        || !s->get_angle_ref().has_value()
+        || s->get_data_valid() != status::ok) {
         return;
     }
     const auto angle_ref = to_string(*s->get_angle_ref());
     const auto speed = s->get_speed()->get<units::meters_per_second>().value();
     if (angle_ref == "R") {
         AddNumber(values_array, allocator, "environment.wind.angleApparent",
-            deg2rad(*s->get_angle()));
+            deg2rad(WindAngle(*s->get_angle())));
         AddNumber(
             values_array, allocator, "environment.wind.speedApparent", speed);
     } else {
         AddNumber(values_array, allocator, "environment.wind.angleTrueWater",
-            deg2rad(*s->get_angle()));
+            deg2rad(WindAngle(*s->get_angle())));
         AddNumber(values_array, allocator, "environment.wind.speedTrue", speed);
     }
 }
@@ -460,6 +607,16 @@ void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::rmb> s,
         val.AddMember("value", pos, allocator);
         values_array.PushBack(val, allocator);
     }
+    if (s->get_waypoint_to().has_value()) {
+        AddString(values_array, allocator,
+            "navigation.courseRhumbline.nextPoint.ID",
+            s->get_waypoint_to()->c_str());
+    }
+    if (s->get_waypoint_from().has_value()) {
+        AddString(values_array, allocator,
+            "navigation.courseRhumbline.previousPoint.ID",
+            s->get_waypoint_from()->c_str());
+    }
     if (s->get_bearing().has_value()) {
         AddNumber(values_array, allocator,
             "navigation.courseRhumbline.nextPoint.bearingTrue",
@@ -476,10 +633,14 @@ void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::rmb> s,
             s->get_range()->get<units::nautical_miles>().value() * NM2METER);
     }
     if (s->get_cross_track_error().has_value()) {
+        auto xte
+            = s->get_cross_track_error()->get<units::nautical_miles>().value()
+            * NM2METER;
+        if (s->get_steer_dir() == side::right) {
+            xte *= -1.0;
+        }
         AddNumber(values_array, allocator,
-            "navigation.courseRhumbline.crossTrackError",
-            s->get_cross_track_error()->get<units::nautical_miles>().value()
-                * NM2METER);
+            "navigation.courseRhumbline.crossTrackError", xte);
     }
 }
 
@@ -497,8 +658,12 @@ void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::rpm> s,
     rapidjson::Value& values_array,
     rapidjson::Document::AllocatorType& allocator)
 {
-    if (s->get_revolutions().has_value()) {
-        AddNumber(values_array, allocator, "propulsion.main.revolutions",
+    if (s->get_revolutions().has_value() && s->get_source().has_value()
+        && s->get_source_number().has_value()) {
+        const auto path = std::string("propulsion.")
+            + (*s->get_source() == rpm::source_id::shaft ? "shaft_" : "engine_")
+            + std::to_string(*s->get_source_number()) + ".revolutions";
+        AddNumber(values_array, allocator, path.c_str(),
             *s->get_revolutions() / 60.0);
     }
 }
@@ -622,8 +787,9 @@ void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::xte> s,
             xte *= 1000.0;
         }
     }
+    // SignalK: positive when the vessel is right of track (steer Left)
     if (s->get_direction_to_steer().has_value()
-        && to_string(*s->get_direction_to_steer()) == "L") {
+        && to_string(*s->get_direction_to_steer()) == "R") {
         xte *= -1.0;
     }
     AddNumber(values_array, allocator,
@@ -636,8 +802,7 @@ void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::zda> s,
 {
     if (s->get_time_utc().has_value() && s->get_date().has_value()) {
         AddString(values_array, allocator, "navigation.datetime",
-            to_string(*s->get_date()) + "T" + to_string(*s->get_time_utc())
-                + "Z");
+            IsoDateTime(*s->get_date(), *s->get_time_utc()));
     }
 }
 
@@ -654,6 +819,16 @@ void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::bod> s,
         AddNumber(values_array, allocator,
             "navigation.courseRhumbline.bearingTrackMagnetic",
             deg2rad(*s->get_bearing_magn()));
+    }
+    if (s->get_waypoint_to().has_value()) {
+        AddString(values_array, allocator,
+            "navigation.courseRhumbline.nextPoint.ID",
+            s->get_waypoint_to()->c_str());
+    }
+    if (s->get_waypoint_from().has_value()) {
+        AddString(values_array, allocator,
+            "navigation.courseRhumbline.previousPoint.ID",
+            s->get_waypoint_from()->c_str());
     }
 }
 
@@ -728,28 +903,723 @@ void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::apb> s,
         if (s->get_cross_track_unit().has_value()
             && to_string(*s->get_cross_track_unit()) == "N") {
             xte *= NM2METER;
+        } else {
+            xte *= 1000.0;
         }
         if (s->get_direction_to_steer().has_value()
-            && to_string(*s->get_direction_to_steer()) == "L") {
+            && to_string(*s->get_direction_to_steer()) == "R") {
             xte *= -1.0;
         }
         AddNumber(values_array, allocator,
             "navigation.courseRhumbline.crossTrackError", xte);
     }
+    auto ref = [](const std::optional<reference>& r) {
+        return r.has_value() && *r == reference::MAGNETIC
+            ? std::string("Magnetic")
+            : std::string("True");
+    };
     if (s->get_bearing_origin_to_destination().has_value()) {
+        const auto r = ref(s->get_bearing_origin_to_destination_ref());
+        const auto v = deg2rad(*s->get_bearing_origin_to_destination());
         AddNumber(values_array, allocator,
-            "navigation.courseRhumbline.bearingTrackTrue",
-            deg2rad(*s->get_bearing_origin_to_destination()));
+            ("navigation.courseRhumbline.bearingTrack" + r).c_str(), v);
+        AddNumber(values_array, allocator,
+            ("navigation.courseRhumbline.bearingOriginToDestination" + r)
+                .c_str(),
+            v);
     }
     if (s->get_bearing_pos_to_destination().has_value()) {
+        const auto r = ref(s->get_bearing_pos_to_destination_ref());
+        const auto v = deg2rad(*s->get_bearing_pos_to_destination());
         AddNumber(values_array, allocator,
-            "navigation.courseRhumbline.nextPoint.bearingTrue",
-            deg2rad(*s->get_bearing_pos_to_destination()));
+            ("navigation.courseRhumbline.bearingToDestination" + r).c_str(), v);
+        AddNumber(values_array, allocator,
+            ("navigation.courseRhumbline.nextPoint.bearing" + r).c_str(), v);
+    }
+    if (s->get_waypoint_id().has_value()) {
+        AddString(values_array, allocator,
+            "navigation.courseRhumbline.nextPoint.ID",
+            s->get_waypoint_id()->c_str());
     }
     if (s->get_heading_to_steer_to_destination().has_value()) {
         AddNumber(values_array, allocator,
-            "steering.autopilot.target.headingTrue",
+            ("steering.autopilot.target.heading"
+                + ref(s->get_heading_to_steer_to_destination_ref()))
+                .c_str(),
             deg2rad(*s->get_heading_to_steer_to_destination()));
+    }
+    if (s->get_status_arrival() == status::ok) {
+        AddNotification(values_array, allocator,
+            "notifications.arrivalCircleEntered", "WP arrival circle entered!");
+    }
+    if (s->get_status_perpendicular_passing() == status::ok) {
+        AddNotification(values_array, allocator,
+            "notifications.perpendicularPassed", "Perpendicular passed!");
+    }
+}
+
+void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::aam> s,
+    rapidjson::Value& values_array,
+    rapidjson::Document::AllocatorType& allocator)
+{
+    AddString(values_array, allocator,
+        "navigation.courseRhumbline.nextPoint.ID",
+        s->get_waypoint_id().c_str());
+    AddNumber(values_array, allocator,
+        "navigation.courseRhumbline.arrivalCircle",
+        s->get_arrival_circle_radius().get<units::nautical_miles>().value()
+            * NM2METER);
+    if (s->get_arrival_circle_entered() == status::ok) {
+        AddNotification(values_array, allocator,
+            "notifications.arrivalCircleEntered", "WP arrival circle entered!");
+    }
+    if (s->get_perpendicualar_passed() == status::ok) {
+        AddNotification(values_array, allocator,
+            "notifications.perpendicularPassed", "Perpendicular passed!");
+    }
+}
+
+void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::bec> s,
+    rapidjson::Value& values_array,
+    rapidjson::Document::AllocatorType& allocator)
+{
+    // Dead reckoning variant of BWC
+    AddPosition(values_array, allocator,
+        "navigation.courseGreatCircle.nextPoint.position", s->get_lat().get(),
+        s->get_lon().get());
+    AddNumber(values_array, allocator,
+        "navigation.courseGreatCircle.nextPoint.distance",
+        s->get_distance().get<units::nautical_miles>().value() * NM2METER);
+    AddNumber(values_array, allocator,
+        "navigation.courseGreatCircle.bearingTrackTrue",
+        deg2rad(s->get_bearing_true()));
+    AddNumber(values_array, allocator,
+        "navigation.courseGreatCircle.bearingTrackMagnetic",
+        deg2rad(s->get_bearing_magn()));
+    AddString(values_array, allocator,
+        "navigation.courseGreatCircle.nextPoint.ID", s->get_waypoint().c_str());
+}
+
+void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::mob> s,
+    rapidjson::Value& values_array,
+    rapidjson::Document::AllocatorType& allocator)
+{
+    const auto st = s->get_mob_status();
+    if (st != mob::mob_status::mob_activated
+        && st != mob::mob_status::manual_button) {
+        return;
+    }
+    char msg[128];
+    snprintf(msg, sizeof(msg), "Man overboard! Position %.5f, %.5f",
+        s->get_lat().get(), s->get_lon().get());
+    AddNotification(
+        values_array, allocator, "notifications.mob", msg, "emergency");
+}
+
+void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::osd> s,
+    rapidjson::Value& values_array,
+    rapidjson::Document::AllocatorType& allocator)
+{
+    if (s->get_data_valid() != status::ok) {
+        return;
+    }
+    if (s->get_heading().has_value()) {
+        AddNumber(values_array, allocator, "navigation.headingTrue",
+            deg2rad(*s->get_heading()));
+    }
+    if (s->get_course().has_value()) {
+        AddNumber(values_array, allocator,
+            s->get_course_ref() == reference::MAGNETIC
+                ? "navigation.courseOverGroundMagnetic"
+                : "navigation.courseOverGroundTrue",
+            deg2rad(*s->get_course()));
+    }
+    if (s->get_speed().has_value() && s->get_speed_unit().has_value()) {
+        auto speed = *s->get_speed();
+        switch (*s->get_speed_unit()) {
+        case unit::velocity::knot:
+            speed = kn2ms(speed);
+            break;
+        case unit::velocity::kmh:
+            speed = kmh2ms(speed);
+            break;
+        default:
+            break;
+        }
+        AddNumber(values_array, allocator,
+            s->get_speed_ref() == 'W' ? "navigation.speedThroughWater"
+                                      : "navigation.speedOverGround",
+            speed);
+    }
+}
+
+void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::pgrmz> s,
+    rapidjson::Value& values_array,
+    rapidjson::Document::AllocatorType& allocator)
+{
+    AddNumber(values_array, allocator, "navigation.gnss.antennaAltitude",
+        s->get_altitude().get<units::meters>().value());
+}
+
+void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::rma> s,
+    rapidjson::Value& values_array,
+    rapidjson::Document::AllocatorType& allocator)
+{
+    // Loran-C equivalent of RMC
+    if (s->get_blink_warning() == 'V') {
+        return;
+    }
+    if (s->get_lat().has_value() && s->get_lon().has_value()) {
+        AddPosition(values_array, allocator, "navigation.position",
+            s->get_lat()->get(), s->get_lon()->get());
+    }
+    if (s->get_track().has_value()) {
+        AddNumber(values_array, allocator, "navigation.courseOverGroundTrue",
+            deg2rad(*s->get_track()));
+    }
+    if (s->get_sog().has_value()) {
+        AddNumber(values_array, allocator, "navigation.speedOverGround",
+            kn2ms(s->get_sog()->get<units::knots>().value()));
+    }
+    if (s->get_magnetic_var().has_value()) {
+        AddNumber(values_array, allocator, "navigation.magneticVariation",
+            deg2rad(MagneticDegrees(*s->get_magnetic_var())));
+    }
+}
+
+void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::stalk> s,
+    rapidjson::Value& values_array,
+    rapidjson::Document::AllocatorType& allocator)
+{
+    // Decoded from the raw datagram following the SignalK parser, Marnav's
+    // seatalk decoders read the 16 bit values MSB first while SeaTalk sends
+    // them LSB first
+    const auto d = s->get_data();
+    auto at = [&d](size_t i) -> unsigned { return i < d.size() ? d[i] : 0; };
+    auto le16 = [&at](size_t i) { return at(i) + 256 * at(i + 1); };
+    // Compass heading from the U nibble and VW byte (datagrams 84, 9C)
+    auto compass = [&at]() {
+        const auto u = at(1) >> 4;
+        return (u & 0x3) * 90.0 + (at(2) & 0x3f) * 2.0 + ((u >> 2) & 0x1)
+            + ((u >> 3) & 0x1);
+    };
+    auto add_datetime = [&]() {
+        if (!m_seatalk_date.empty() && !m_seatalk_time.empty()) {
+            AddString(values_array, allocator, "navigation.datetime",
+                m_seatalk_date + m_seatalk_time);
+        }
+    };
+    auto add_position = [&]() {
+        if (m_seatalk_lat.has_value() && m_seatalk_lon.has_value()) {
+            AddPosition(values_array, allocator, "navigation.position",
+                *m_seatalk_lat, *m_seatalk_lon);
+        }
+    };
+    char buf[32];
+    switch (at(0)) {
+    case 0x00: // Depth below transducer, 1/10 ft
+        AddNumber(values_array, allocator, "environment.depth.belowTransducer",
+            (at(3) + ((at(4) & 0x7f) << 8)) / 10.0 * FOOT2METER);
+        break;
+    case 0x10: // Apparent wind angle, 1/2 degree
+        AddNumber(values_array, allocator, "environment.wind.angleApparent",
+            deg2rad(WindAngle((256 * at(2) + at(3)) / 2.0)));
+        break;
+    case 0x11: // Apparent wind speed
+        AddNumber(values_array, allocator, "environment.wind.speedApparent",
+            kn2ms((at(2) & 0x7f) + at(3) / 10.0));
+        break;
+    case 0x20: // Speed through water, 1/10 kn
+        AddNumber(values_array, allocator, "navigation.speedThroughWater",
+            kn2ms(le16(2) / 10.0));
+        break;
+    case 0x21: // Trip mileage, 1/100 NM
+        AddNumber(values_array, allocator, "navigation.trip.log",
+            (le16(2) + (at(4) & 0x0f) * 65536) / 100.0 * NM2METER);
+        break;
+    case 0x22: // Total mileage, 1/10 NM
+        AddNumber(values_array, allocator, "navigation.log",
+            le16(2) / 10.0 * NM2METER);
+        break;
+    case 0x25: // Total and trip log
+        AddNumber(values_array, allocator, "navigation.log",
+            (le16(2) + (at(1) >> 4) * 65536) / 10.0 * NM2METER);
+        AddNumber(values_array, allocator, "navigation.trip.log",
+            (le16(4) + (at(6) & 0x0f) * 65536) / 100.0 * NM2METER);
+        break;
+    case 0x26: { // Speed through water, 1/100 kn
+        const auto flags = at(6) >> 4;
+        if (flags & 4) {
+            AddNumber(values_array, allocator, "navigation.speedThroughWater",
+                kn2ms(le16(2) / 100.0));
+        }
+        if (!(flags & 8)) {
+            AddNumber(values_array, allocator,
+                "navigation.averageSpeedThroughWater", kn2ms(le16(4) / 100.0));
+        }
+        break;
+    }
+    case 0x27: // Water temperature, (XXXX-100)/10 Celsius
+        AddNumber(values_array, allocator, "environment.water.temperature",
+            (le16(2) - 100.0) / 10.0 + KELVIN_OFFSET);
+        break;
+    case 0x50: { // Latitude
+        const auto y = le16(3);
+        m_seatalk_lat
+            = (y & 0x8000 ? -1.0 : 1.0) * (at(2) + (y & 0x7fff) / 100.0 / 60.0);
+        add_position();
+        break;
+    }
+    case 0x51: { // Longitude
+        const auto y = le16(3);
+        m_seatalk_lon
+            = (y & 0x8000 ? 1.0 : -1.0) * (at(2) + (y & 0x7fff) / 100.0 / 60.0);
+        add_position();
+        break;
+    }
+    case 0x52: // Speed over ground, 1/10 kn
+        AddNumber(values_array, allocator, "navigation.speedOverGround",
+            kn2ms(le16(2) / 10.0));
+        break;
+    case 0x53: { // Magnetic course
+        const auto u = at(1) >> 4;
+        AddNumber(values_array, allocator,
+            "navigation.courseOverGroundMagnetic",
+            deg2rad((u & 0x3) * 90.0 + (at(2) & 0x3f) * 2.0 + (u & 0xc) / 8.0));
+        break;
+    }
+    case 0x54: // GMT time
+        snprintf(buf, sizeof(buf), "T%02u:%02u:%02u.000Z", at(3),
+            (at(2) & 0xfc) / 4, (((at(2) & 0x0f) << 4) + (at(1) >> 4)) & 0x3f);
+        m_seatalk_time = buf;
+        add_datetime();
+        break;
+    case 0x56: // Date
+        snprintf(buf, sizeof(buf), "%04u-%02u-%02u", 2000 + at(3), at(1) >> 4,
+            at(2));
+        m_seatalk_date = buf;
+        add_datetime();
+        break;
+    case 0x57: { // Satellite info
+        const auto sats = at(1) >> 4;
+        AddNumber(values_array, allocator, "navigation.gnss.satellites", sats);
+        AddNumber(values_array, allocator, "navigation.gnss.horizontalDilution",
+            sats == 1 ? 0x94 : at(2));
+        break;
+    }
+    case 0x84: { // Autopilot status
+        if (d.size() != 9) {
+            break;
+        }
+        const auto z = at(4) & 0x0f;
+        const char* mode = z & 0x8 ? "route"
+            : z & 0x4              ? "wind"
+            : z & 0x2              ? "auto"
+                                   : "standby";
+        AddNumber(values_array, allocator, "navigation.headingMagnetic",
+            deg2rad(compass()));
+        AddNumber(values_array, allocator,
+            "steering.autopilot.target.headingMagnetic",
+            deg2rad(((at(2) >> 4 & 0xc) >> 2) * 90.0 + at(3) / 2.0));
+        AddNumber(values_array, allocator, "steering.rudderAngle",
+            deg2rad(static_cast<int8_t>(at(6))));
+        AddString(values_array, allocator, "steering.autopilot.state", mode);
+        break;
+    }
+    case 0x99: // Magnetic variation, West positive
+        AddNumber(values_array, allocator, "navigation.magneticVariation",
+            deg2rad(-static_cast<int8_t>(at(2))));
+        break;
+    case 0x9C: // Compass heading and rudder position
+        AddNumber(values_array, allocator, "navigation.headingMagnetic",
+            deg2rad(compass()));
+        AddNumber(values_array, allocator, "steering.rudderAngle",
+            deg2rad(static_cast<int8_t>(at(3))));
+        break;
+    default:
+        break;
+    }
+}
+
+void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::vbw> s,
+    rapidjson::Value& values_array,
+    rapidjson::Document::AllocatorType& allocator)
+{
+    if (s->get_water_speed_status() == status::ok) {
+        if (s->get_water_speed_longitudinal().has_value()) {
+            AddNumber(values_array, allocator, "navigation.speedThroughWater",
+                s->get_water_speed_longitudinal()
+                    ->get<units::meters_per_second>()
+                    .value());
+        }
+        if (s->get_water_speed_transveral().has_value()) {
+            AddNumber(values_array, allocator,
+                "navigation.speedThroughWaterTransverse",
+                s->get_water_speed_transveral()
+                    ->get<units::meters_per_second>()
+                    .value());
+        }
+    }
+}
+
+void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::vdm> s,
+    rapidjson::Value& values_array,
+    rapidjson::Document::AllocatorType& allocator)
+{
+    // ponytail: one fragment buffer, interleaved multi-part messages from
+    // several channels get dropped, key by seq_msg_id if that shows up
+    if (s->get_fragment() == 1) {
+        m_ais_fragments.clear();
+    } else if (m_ais_fragments.size() + 1 != s->get_fragment()) {
+        m_ais_fragments.clear();
+        return;
+    }
+    m_ais_fragments.emplace_back(s->get_payload(), s->get_n_fill_bits());
+    if (s->get_fragment() < s->get_n_fragments()) {
+        return;
+    }
+    const auto payload = std::move(m_ais_fragments);
+    m_ais_fragments.clear();
+
+    std::unique_ptr<ais::message> msg;
+    try {
+        msg = ais::make_message(payload);
+    } catch (...) {
+        return; // AIS message types not supported by Marnav
+    }
+
+    static const char* states[] = { "motoring", "anchored", "not under command",
+        "restricted manouverability", "constrained by draft", "moored",
+        "aground", "fishing", "sailing", "hazardous material high speed",
+        "hazardous material wing in ground", "", "", "", "ais-sart",
+        "default" };
+    const char* prefix = "vessels.";
+    utils::mmsi mmsi;
+
+    auto add_root = [&](const char* key, Value v) {
+        Value obj(kObjectType);
+        obj.AddMember(Value(key, allocator), v, allocator);
+        AddValue(values_array, allocator, "", obj);
+    };
+    auto add_str = [&](const char* key, const std::string& str) {
+        if (!str.empty()) {
+            add_root(key, Value(str.c_str(), allocator));
+        }
+    };
+    auto add_pos = [&](const auto* m) {
+        if (m->get_lat().has_value() && m->get_lon().has_value()) {
+            AddPosition(values_array, allocator, "navigation.position",
+                m->get_lat()->get(), m->get_lon()->get());
+        }
+    };
+    auto add_dim = [&](const ais::vessel_dimension& d) {
+        const auto length = d.get_to_bow().value() + d.get_to_stern().value();
+        const auto beam
+            = d.get_to_port().value() + d.get_to_starboard().value();
+        if (length > 0) {
+            Value l(kObjectType);
+            l.AddMember("overall", length, allocator);
+            AddValue(values_array, allocator, "design.length", l);
+        }
+        if (beam > 0) {
+            AddNumber(values_array, allocator, "design.beam", beam);
+        }
+        if (d.get_to_bow().value() > 0) {
+            AddNumber(values_array, allocator, "sensors.ais.fromBow",
+                d.get_to_bow().value());
+        }
+        if (beam > 0 && d.get_to_starboard().value() > 0) {
+            AddNumber(values_array, allocator, "sensors.ais.fromCenter",
+                beam / 2 - d.get_to_starboard().value());
+        }
+    };
+    auto add_ship_type = [&](ais::ship_type t) {
+        if (t != ais::ship_type::not_available) {
+            Value v(kObjectType);
+            v.AddMember("id", static_cast<unsigned>(t), allocator);
+            AddValue(values_array, allocator, "design.aisShipType", v);
+        }
+    };
+    auto add_motion
+        = [&](std::optional<units::knots> sog, std::optional<double> cog,
+              std::optional<uint32_t> hdg) {
+              if (sog.has_value()) {
+                  AddNumber(values_array, allocator,
+                      "navigation.speedOverGround", kn2ms(sog->value()));
+              }
+              if (cog.has_value()) {
+                  AddNumber(values_array, allocator,
+                      "navigation.courseOverGroundTrue", deg2rad(*cog));
+              }
+              if (hdg.has_value()) {
+                  AddNumber(values_array, allocator, "navigation.headingTrue",
+                      deg2rad(*hdg));
+              }
+          };
+
+    switch (msg->type()) {
+    case ais::message_id::position_report_class_a:
+    case ais::message_id::position_report_class_a_assigned_schedule:
+    case ais::message_id::position_report_class_a_response_to_interrogation: {
+        const auto m = static_cast<const ais::message_01*>(msg.get());
+        mmsi = m->get_mmsi();
+        add_motion(m->get_sog(), m->get_cog(), m->get_hdg());
+        const auto rot = m->get_rot();
+        if (rot.available() && !rot.is_more_5deg30s_left()
+            && !rot.is_more_5deg30s_right()) {
+            AddNumber(values_array, allocator, "navigation.rateOfTurn",
+                deg2rad(rot.value()) / 60.0);
+        }
+        const auto st = static_cast<size_t>(m->get_nav_status());
+        if (st < std::size(states) && *states[st]) {
+            AddString(values_array, allocator, "navigation.state", states[st]);
+        }
+        add_pos(m);
+        AddString(values_array, allocator, "sensors.ais.class", "A");
+        break;
+    }
+    case ais::message_id::base_station_report: {
+        const auto m = ais::message_cast<ais::message_04>(msg.get());
+        mmsi = m->get_mmsi();
+        prefix = "atons.";
+        add_pos(m);
+        AddString(values_array, allocator, "sensors.ais.class", "BASE");
+        break;
+    }
+    case ais::message_id::static_and_voyage_related_data: {
+        const auto m = ais::message_cast<ais::message_05>(msg.get());
+        mmsi = m->get_mmsi();
+        add_str("name", m->get_shipname());
+        if (!m->get_callsign().empty()) {
+            Value comm(kObjectType);
+            comm.AddMember("callsignVhf",
+                Value(m->get_callsign().c_str(), allocator), allocator);
+            add_root("communication", std::move(comm));
+        }
+        if (m->get_imo_number() != 0) {
+            Value reg(kObjectType);
+            reg.AddMember("imo",
+                Value(("IMO " + std::to_string(m->get_imo_number())).c_str(),
+                    allocator),
+                allocator);
+            add_root("registrations", std::move(reg));
+        }
+        add_dim(m->get_vessel_dimension());
+        add_ship_type(m->get_shiptype());
+        if (m->get_draught().value() > 0) {
+            Value d(kObjectType);
+            d.AddMember("current", m->get_draught().value(), allocator);
+            AddValue(values_array, allocator, "design.draft", d);
+        }
+        if (!m->get_destination().empty()) {
+            AddString(values_array, allocator,
+                "navigation.destination.commonName", m->get_destination());
+        }
+        const auto mon = m->get_eta_month(), day = m->get_eta_day(),
+                   hr = m->get_eta_hour(), min = m->get_eta_minute();
+        if (mon >= 1 && mon <= 12 && day >= 1 && day <= 31 && hr < 24
+            && min < 60) {
+            // ETA has no year, take the next occurrence
+            const auto now = std::time(nullptr);
+            auto year = gmtime(&now)->tm_year + 1900;
+            char buf[32];
+            snprintf(buf, sizeof(buf), "%04d-%02u-%02uT%02u:%02u:00.000Z", year,
+                mon, day, hr, min);
+            if (std::string(buf) < currentISO8601TimeUTC()) {
+                snprintf(buf, sizeof(buf), "%04d-%02u-%02uT%02u:%02u:00.000Z",
+                    year + 1, mon, day, hr, min);
+            }
+            AddString(
+                values_array, allocator, "navigation.destination.eta", buf);
+        }
+        AddString(values_array, allocator, "sensors.ais.class", "A");
+        break;
+    }
+    case ais::message_id::standard_class_b_cs_position_report: {
+        const auto m = ais::message_cast<ais::message_18>(msg.get());
+        mmsi = m->get_mmsi();
+        add_motion(m->get_sog(), m->get_cog(), m->get_hdg());
+        add_pos(m);
+        AddString(values_array, allocator, "sensors.ais.class", "B");
+        break;
+    }
+    case ais::message_id::extended_class_b_equipment_position_report: {
+        const auto m = ais::message_cast<ais::message_19>(msg.get());
+        mmsi = m->get_mmsi();
+        add_motion(m->get_sog(),
+            m->get_cog() < 3600 ? std::optional<double>(m->get_cog() / 10.0)
+                                : std::nullopt,
+            m->get_hdg() < 360 ? std::optional<uint32_t>(m->get_hdg())
+                               : std::nullopt);
+        add_str("name", m->get_shipname());
+        add_dim(m->get_vessel_dimension());
+        add_ship_type(m->get_shiptype());
+        add_pos(m);
+        AddString(values_array, allocator, "sensors.ais.class", "B");
+        break;
+    }
+    case ais::message_id::aid_to_navigation_report: {
+        const auto m = ais::message_cast<ais::message_21>(msg.get());
+        mmsi = m->get_mmsi();
+        prefix = "atons.";
+        add_str("name", m->get_name() + m->get_name_extension());
+        Value t(kObjectType);
+        t.AddMember("id", static_cast<unsigned>(m->get_aid_type()), allocator);
+        AddValue(values_array, allocator, "atonType", t);
+        Value off(
+            m->get_off_position() == ais::off_position_indicator::off_position);
+        AddValue(values_array, allocator, "offPosition", off);
+        Value virt(m->get_virtual_aid_flag() == ais::virtual_aid::virtual_aid);
+        AddValue(values_array, allocator, "virtual", virt);
+        add_pos(m);
+        AddString(values_array, allocator, "sensors.ais.class", "ATON");
+        break;
+    }
+    case ais::message_id::static_data_report: {
+        const auto m = ais::message_cast<ais::message_24>(msg.get());
+        mmsi = m->get_mmsi();
+        if (m->get_part_number() == ais::message_24::part::A) {
+            add_str("name", m->get_shipname());
+        } else {
+            add_ship_type(m->get_shiptype());
+            if (!m->get_callsign().empty()) {
+                Value comm(kObjectType);
+                comm.AddMember("callsignVhf",
+                    Value(m->get_callsign().c_str(), allocator), allocator);
+                add_root("communication", std::move(comm));
+            }
+            add_dim(m->get_vessel_dimension());
+        }
+        break;
+    }
+    default:
+        return;
+    }
+    add_root("mmsi",
+        Value(MmsiContext(mmsi, "")
+                  .substr(std::strlen("urn:mrn:imo:mmsi:"))
+                  .c_str(),
+            allocator));
+    m_context = MmsiContext(mmsi, prefix);
+}
+
+void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::wcv> s,
+    rapidjson::Value& values_array,
+    rapidjson::Document::AllocatorType& allocator)
+{
+    if (s->get_speed().has_value()) {
+        AddNumber(values_array, allocator,
+            "navigation.courseRhumbline.nextPoint.velocityMadeGood",
+            s->get_speed()->get<units::meters_per_second>().value());
+    }
+    if (s->get_waypoint_id().has_value()) {
+        AddString(values_array, allocator,
+            "navigation.courseRhumbline.nextPoint.ID",
+            s->get_waypoint_id()->c_str());
+    }
+}
+
+void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::xdr> s,
+    rapidjson::Value& values_array,
+    rapidjson::Document::AllocatorType& allocator)
+{
+    // ponytail: XDR has no SignalK reference mapping, only the common
+    // transducers are mapped, extend the name lists as devices show up
+    auto is
+        = [](const std::string& name, std::initializer_list<const char*> l) {
+              for (auto n : l) {
+                  if (strcasecmp(name.c_str(), n) == 0) {
+                      return true;
+                  }
+              }
+              return false;
+          };
+    Value attitude(kObjectType);
+    for (int i = 0; i < xdr::max_transducer_info; ++i) {
+        const auto info = s->get_info(i);
+        if (!info.has_value()) {
+            continue;
+        }
+        const auto v = info->measurement_data;
+        switch (info->transducer_type) {
+        case 'P': // Pressure, Bar or Pascal
+            if (is(info->name, { "", "Barometer", "ENV_ATMOS_P", "AirPres" })) {
+                AddNumber(values_array, allocator,
+                    "environment.outside.pressure",
+                    info->units_of_measurement == 'B' ? v * 100000.0 : v);
+            }
+            break;
+        case 'C': // Temperature, Celsius
+            if (is(info->name, { "AirTemp", "TempAir", "ENV_OUTAIR_T" })) {
+                AddNumber(values_array, allocator,
+                    "environment.outside.temperature", v + KELVIN_OFFSET);
+            } else if (is(info->name,
+                           { "WaterTemp", "TempWater", "ENV_WATER_T" })) {
+                AddNumber(values_array, allocator,
+                    "environment.water.temperature", v + KELVIN_OFFSET);
+            }
+            break;
+        case 'H': // Humidity, percent
+            AddNumber(values_array, allocator,
+                "environment.outside.relativeHumidity", v / 100.0);
+            break;
+        case 'A': // Angle, degrees
+            if (is(info->name, { "PITCH", "PTCH" })) {
+                attitude.AddMember("pitch", deg2rad(v), allocator);
+            } else if (is(info->name, { "ROLL" })) {
+                attitude.AddMember("roll", deg2rad(v), allocator);
+            } else if (is(info->name, { "YAW" })) {
+                attitude.AddMember("yaw", deg2rad(v), allocator);
+            }
+            break;
+        default:
+            break;
+        }
+    }
+    if (attitude.MemberCount() > 0) {
+        AddValue(values_array, allocator, "navigation.attitude", attitude);
+    }
+}
+
+void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::xtr> s,
+    rapidjson::Value& values_array,
+    rapidjson::Document::AllocatorType& allocator)
+{
+    // Dead reckoning variant of XTE
+    if (!s->get_cross_track_error_magnitude().has_value()) {
+        return;
+    }
+    auto xte = *s->get_cross_track_error_magnitude();
+    if (s->get_cross_track_unit().has_value()) {
+        const auto unit = to_string(*s->get_cross_track_unit());
+        if (unit == "N") {
+            xte *= NM2METER;
+        } else if (unit == "K") {
+            xte *= 1000.0;
+        }
+    }
+    if (s->get_direction_to_steer() == side::right) {
+        xte *= -1.0;
+    }
+    AddNumber(values_array, allocator,
+        "navigation.courseRhumbline.crossTrackError", xte);
+}
+
+void NSK::ProcessSentence(std::unique_ptr<marnav::nmea::ztg> s,
+    rapidjson::Value& values_array,
+    rapidjson::Document::AllocatorType& allocator)
+{
+    if (s->get_time_remaining().has_value()) {
+        const auto& t = *s->get_time_remaining();
+        AddNumber(values_array, allocator,
+            "navigation.courseRhumbline.nextPoint.timeToGo",
+            t.hour() * 3600.0 + t.minutes() * 60.0 + t.seconds()
+                + t.milliseconds() / 1000.0);
+    }
+    if (s->get_waypoint_id().has_value()) {
+        AddString(values_array, allocator,
+            "navigation.courseRhumbline.nextPoint.ID",
+            s->get_waypoint_id()->c_str());
     }
 }
 
@@ -774,6 +1644,7 @@ void NSK::ProcessNMEASentence(
         rapidjson::Document::AllocatorType& allocator = d.GetAllocator();
 
         bool processed = true;
+        m_context.clear();
         auto s = make_sentence(stc);
         known_sentence ks(*s);
         auto ksit = m_known.find(ks);
@@ -887,6 +1758,52 @@ void NSK::ProcessNMEASentence(
             case sentence_id::APB:
                 ProcessSentence(sentence_cast<nmea::apb>(s), values, allocator);
                 break;
+            case sentence_id::AAM:
+                ProcessSentence(sentence_cast<nmea::aam>(s), values, allocator);
+                break;
+            case sentence_id::BEC:
+                ProcessSentence(sentence_cast<nmea::bec>(s), values, allocator);
+                break;
+            case sentence_id::MOB:
+                ProcessSentence(sentence_cast<nmea::mob>(s), values, allocator);
+                break;
+            case sentence_id::OSD:
+                ProcessSentence(sentence_cast<nmea::osd>(s), values, allocator);
+                break;
+            case sentence_id::PGRMZ:
+                ProcessSentence(
+                    sentence_cast<nmea::pgrmz>(s), values, allocator);
+                break;
+            case sentence_id::RMA:
+                ProcessSentence(sentence_cast<nmea::rma>(s), values, allocator);
+                break;
+            case sentence_id::STALK:
+                ProcessSentence(
+                    sentence_cast<nmea::stalk>(s), values, allocator);
+                break;
+            case sentence_id::VBW:
+                ProcessSentence(sentence_cast<nmea::vbw>(s), values, allocator);
+                break;
+            case sentence_id::VDM:
+                ProcessSentence(sentence_cast<nmea::vdm>(s), values, allocator);
+                break;
+            case sentence_id::WCV:
+                ProcessSentence(sentence_cast<nmea::wcv>(s), values, allocator);
+                break;
+            case sentence_id::XDR:
+                ProcessSentence(sentence_cast<nmea::xdr>(s), values, allocator);
+                break;
+            case sentence_id::XTR:
+                ProcessSentence(sentence_cast<nmea::xtr>(s), values, allocator);
+                break;
+            case sentence_id::ZTG:
+                ProcessSentence(sentence_cast<nmea::ztg>(s), values, allocator);
+                break;
+            case sentence_id::VDO:
+                ProcessSentence(
+                    std::unique_ptr<nmea::vdm>(sentence_cast<nmea::vdo>(s)),
+                    values, allocator);
+                break;
             default:
                 ++m_unimplemented_count;
                 m_unimplemented.emplace(s->tag());
@@ -912,6 +1829,9 @@ void NSK::ProcessNMEASentence(
             upd.AddMember("timestamp", currentISO8601TimeUTC(), allocator);
             upd.AddMember("values", values, allocator);
             updates.PushBack(upd, allocator);
+            if (!m_context.empty()) {
+                d.AddMember("context", m_context, allocator);
+            }
             d.AddMember("updates", updates, allocator);
             StringBuffer buffer;
             Writer<StringBuffer> writer(buffer);
