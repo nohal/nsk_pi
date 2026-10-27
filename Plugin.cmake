@@ -88,6 +88,10 @@ endmacro()
 macro(add_plugin_libraries)
   if(APPLE)
     add_subdirectory(opencpn-libs/marnav)
+    # ponytail: marnav builds with -Werror and new clang deprecates `operator""
+    # _x`; drop once marnav upstream fixes angle.hpp
+    target_compile_options(marnav PRIVATE -Wno-unknown-warning-option
+                                          -Wno-deprecated-literal-operator)
     target_link_libraries(${PACKAGE_NAME} ocpn::marnav)
   else(APPLE)
     find_path(MARNAV_HEADER marnav)
