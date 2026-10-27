@@ -37,7 +37,11 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#ifdef _WIN32
+#define strcasecmp _stricmp
+#else
 #include <strings.h>
+#endif
 
 #include "nsk.h"
 #include <marnav/ais/message_01.hpp>
