@@ -87,7 +87,7 @@ int nsk_pi::Init()
     AddLocaleCatalog(_T("opencpn-nsk_pi"));
 
     Bind(EVT_NSK_N2K, &nsk_pi::HandleN2K, this);
-    for (int pgn : { 127250, 128259, 128267, 129025, 129026, 130306 }) {
+    for (auto pgn : SupportedN2KPGNs) {
         m_n2k_listeners.push_back(
             GetListener(NMEA2000Id(pgn), EVT_NSK_N2K, this));
     }

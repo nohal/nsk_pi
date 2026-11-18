@@ -92,6 +92,9 @@
 
 PLUGIN_BEGIN_NAMESPACE
 
+inline constexpr unsigned long SupportedN2KPGNs[]
+    = { 127250, 128259, 128267, 129025, 129026, 130306 };
+
 struct known_sentence {
     /// @brief Talker ID and message tag (eg. GPRMC)
     std::string talker_tag;
@@ -164,7 +167,7 @@ private:
 
     void AddKnownN2K()
     {
-        for (auto pgn : { 127250, 128259, 128267, 129025, 129026, 130306 }) {
+        for (auto pgn : SupportedN2KPGNs) {
             m_known.emplace("PGN " + std::to_string(pgn), true);
         }
     }
