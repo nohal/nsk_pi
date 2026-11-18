@@ -24,6 +24,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
+#include <cstdint>
+
 #include "ocpn_plugin.h"
 #include <string>
 
@@ -33,4 +35,4 @@
 // here...
 
 // wxString GetLocaleCanonicalName() { return "en_US"; }
-void SendPluginMessage(wxString message_id, wxString message_body) { return; }
+void SendPluginMessage(wxString message_id, wxString message_body);

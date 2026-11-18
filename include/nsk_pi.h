@@ -32,6 +32,9 @@
 #include "ocpn_plugin.h"
 #include "pi_common.h"
 
+#include <memory>
+#include <vector>
+
 #define MY_API_VERSION_MAJOR 1
 #define MY_API_VERSION_MINOR 18
 
@@ -41,7 +44,7 @@ PLUGIN_BEGIN_NAMESPACE
 //    The PlugIn Class Definition
 //----------------------------------------------------------------------------------------------------------
 /// Class representing the plugin for OpenCPN Plugin API
-class nsk_pi : public opencpn_plugin_118 {
+class nsk_pi : public wxEvtHandler, public opencpn_plugin_118 {
 private:
     /// Color scheme used by the plugin
     int m_color_scheme;
@@ -51,9 +54,11 @@ private:
     wxString m_config_file;
 
     NSK m_nsk;
+    std::vector<std::shared_ptr<ObservableListener>> m_n2k_listeners;
 
     /// Load the configuration from disk
     void LoadConfig();
+    void HandleN2K(ObservedEvt& ev);
 
 public:
     /// Constructor

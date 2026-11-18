@@ -44,18 +44,22 @@ NSKPreferencesDialogImpl::NSKPreferencesDialogImpl(NSK* nsk, wxWindow* parent,
         m_clKnown->Append(known.talker_tag);
         m_clKnown->Check(m_clKnown->GetCount() - 1, known.enabled);
     }
-    auto format
-        = "Input data rate: %lu sentences/s, output data rate: %lu deltas/s";
-    auto sz
-        = std::snprintf(nullptr, 0, format, m_nsk->NMEARate(), m_nsk->SKRate());
+    auto format = "Input rate: NMEA 0183 %lu sentences/s, NMEA 2000 %lu "
+                  "messages/s; output: %lu deltas/s";
+    auto sz = std::snprintf(nullptr, 0, format, m_nsk->NMEARate(),
+        m_nsk->N2KRate(), m_nsk->SKRate());
     std::string output(sz + 1, '\0');
-    std::sprintf(&output[0], format, m_nsk->NMEARate(), m_nsk->SKRate());
+    std::sprintf(&output[0], format, m_nsk->NMEARate(), m_nsk->N2KRate(),
+        m_nsk->SKRate());
     m_stDataRate->SetLabelText(output);
-    format = "Input total: %lu, Deltas total: %lu";
-    sz = std::snprintf(
-        nullptr, 0, format, m_nsk->NMEATotal(), m_nsk->SKTotal());
+    format = "Totals: NMEA 0183 %lu, NMEA 2000 %lu (ignored %lu, errors %lu); "
+             "deltas %lu";
+    sz = std::snprintf(nullptr, 0, format, m_nsk->NMEATotal(),
+        m_nsk->N2KTotal(), m_nsk->TotalN2KIgnored(), m_nsk->TotalN2KErrors(),
+        m_nsk->SKTotal());
     output.resize(sz + 1, '\0');
-    std::sprintf(&output[0], format, m_nsk->NMEATotal(), m_nsk->SKTotal());
+    std::sprintf(&output[0], format, m_nsk->NMEATotal(), m_nsk->N2KTotal(),
+        m_nsk->TotalN2KIgnored(), m_nsk->TotalN2KErrors(), m_nsk->SKTotal());
     m_stTotals->SetLabelText(output);
 }
 

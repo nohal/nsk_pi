@@ -31,10 +31,10 @@ set(PKG_PRERELEASE "") # Empty, or a tag like 'beta'
 
 set(DISPLAY_NAME NSK) # Dialogs, installer artifacts, ...
 set(PLUGIN_API_NAME NSK) # As of GetCommonName() in plugin API
-set(PKG_SUMMARY "NMEA0183 to SignalK converter")
+set(PKG_SUMMARY "NMEA0183 and NMEA2000 to SignalK converter")
 set(PKG_DESCRIPTION
     [=[
-  NMEA0183 to SignalK converter
+  NMEA0183 and NMEA2000 to SignalK converter
 ]=])
 
 set(PKG_AUTHOR "Pavel Kalian")
@@ -86,6 +86,8 @@ macro(late_init)
 endmacro()
 
 macro(add_plugin_libraries)
+  add_subdirectory(opencpn-libs/n2kparser)
+  target_link_libraries(${PACKAGE_NAME} ocpn::N2KParser)
   if(APPLE)
     add_subdirectory(opencpn-libs/marnav)
     # ponytail: marnav builds with -Werror and new clang deprecates `operator""

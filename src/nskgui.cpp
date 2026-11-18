@@ -19,13 +19,14 @@ NSKPreferencesDialog::NSKPreferencesDialog(wxWindow* parent, wxWindowID id,
     bSizerMain = new wxBoxSizer(wxVERTICAL);
 
     m_stDataRate = new wxStaticText(this, wxID_ANY,
-        _("Input data rate: %d sentences/s, output data rate: %d deltas/s"),
+        _("Input rate: NMEA 0183 sentences/s, NMEA 2000 messages/s; output "
+          "deltas/s"),
         wxDefaultPosition, wxDefaultSize, 0);
     m_stDataRate->Wrap(-1);
     bSizerMain->Add(m_stDataRate, 0, wxALL, 5);
 
     m_stTotals = new wxStaticText(this, wxID_ANY,
-        _("Input total: %d, Deltas total: %d"), wxDefaultPosition,
+        _("Totals: NMEA 0183, NMEA 2000; deltas"), wxDefaultPosition,
         wxDefaultSize, 0);
     m_stTotals->Wrap(-1);
     bSizerMain->Add(m_stTotals, 0, wxALL, 5);
@@ -34,9 +35,10 @@ NSKPreferencesDialog::NSKPreferencesDialog(wxWindow* parent, wxWindowID id,
     bSizerSentences = new wxBoxSizer(wxHORIZONTAL);
 
     wxStaticBoxSizer* sbSizerKnown;
-    sbSizerKnown = new wxStaticBoxSizer(
-        new wxStaticBox(this, wxID_ANY, _("Known (uncheck to ignore)")),
-        wxVERTICAL);
+    sbSizerKnown
+        = new wxStaticBoxSizer(new wxStaticBox(this, wxID_ANY,
+                                   _("Supported inputs (uncheck to ignore)")),
+            wxVERTICAL);
 
     wxArrayString m_clKnownChoices;
     m_clKnown = new wxCheckListBox(sbSizerKnown->GetStaticBox(), wxID_ANY,

@@ -1,8 +1,10 @@
 NSK plugin for OpenCPN
 ======================
 
-This project provides a converter of NMEA 0183 messages to SignalK deltas for [OpenCPN](https://opencpn.org) based on the [SignalK](https://signalk.org) data model.
+This project provides a converter of NMEA 0183 and selected NMEA 2000 messages to SignalK deltas for [OpenCPN](https://opencpn.org) based on the [SignalK](https://signalk.org) data model.
 The primary purpose of the plugin is to provide data for the [DashboardSK plugin](https://github.com/nohal/dashboardsk_pi) in small installations where a proper SignalK data source is not available.
+
+Supported NMEA 2000 PGNs are 127250 (heading), 128259 (speed), 128267 (depth), 129025 (position), 129026 (COG/SOG), and 130306 (wind). Other PGNs are currently ignored.
 
 [![Hosted By: Cloudsmith](https://img.shields.io/badge/OSS%20hosting%20by-cloudsmith-blue?logo=cloudsmith&style=flat-square)](https://cloudsmith.com)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/27176/badge.svg)](https://scan.coverity.com/projects/nohal-nsk_pi)
