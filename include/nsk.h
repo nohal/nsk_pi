@@ -95,6 +95,22 @@ PLUGIN_BEGIN_NAMESPACE
 inline constexpr unsigned long SupportedN2KPGNs[]
     = { 127250, 128259, 128267, 129025, 129026, 130306 };
 
+/// OpenCPN NMEA 0183 listener keys (sentence type without talker ID) for all
+/// sentences known to Marnav
+inline std::set<std::string> N0183ListenerKeys()
+{
+    // set: truncated proprietary tags may collide, duplicates would
+    // double-deliver
+    std::set<std::string> keys;
+    for (const auto& tag : marnav::nmea::get_supported_sentences_str()) {
+        // OpenCPN keys on sentence chars 3-5, after a 2 char talker/prefix
+        if (tag.size() >= 3) {
+            keys.insert(tag.substr(tag.size() - 3));
+        }
+    }
+    return keys;
+}
+
 struct known_sentence {
     /// @brief Talker ID and message tag (eg. GPRMC)
     std::string talker_tag;

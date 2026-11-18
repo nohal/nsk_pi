@@ -219,3 +219,14 @@ TEST_CASE("Oversized NMEA 2000 frames are rejected")
     REQUIRE(result.IsNull());
     REQUIRE(converter.TotalN2KErrors() == 2);
 }
+
+TEST_CASE("NMEA 0183 listener keys match OpenCPN sentence types")
+{
+    auto keys = N0183ListenerKeys();
+    for (const char* key : { "GGA", "RMC", "RMZ", "ALK" }) {
+        REQUIRE(keys.count(key) == 1);
+    }
+    for (const auto& key : keys) {
+        REQUIRE(key.size() == 3);
+    }
+}

@@ -39,6 +39,7 @@
 
 PLUGIN_BEGIN_NAMESPACE
 
+wxDEFINE_EVENT(EVT_NSK_N0183, ObservedEvt);
 wxDEFINE_EVENT(EVT_NSK_N2K, ObservedEvt);
 
 #define kn2ms(x) (0.51444444444 * (x))
@@ -86,20 +87,24 @@ int nsk_pi::Init()
     wxString _svg_nsk = GetDataDir() + "nsk_pi.svg";
     AddLocaleCatalog(_T("opencpn-nsk_pi"));
 
+    Bind(EVT_NSK_N0183, &nsk_pi::HandleN0183, this);
+    for (const auto& key : N0183ListenerKeys()) {
+        m_listeners.push_back(
+            GetListener(NMEA0183Id(key), EVT_NSK_N0183, this));
+    }
     Bind(EVT_NSK_N2K, &nsk_pi::HandleN2K, this);
     for (auto pgn : SupportedN2KPGNs) {
-        m_n2k_listeners.push_back(
-            GetListener(NMEA2000Id(pgn), EVT_NSK_N2K, this));
+        m_listeners.push_back(GetListener(NMEA2000Id(pgn), EVT_NSK_N2K, this));
     }
 
-    return (WANTS_PREFERENCES | WANTS_NMEA_SENTENCES | WANTS_AIS_SENTENCES
-        | WANTS_PLUGIN_MESSAGING);
+    return (WANTS_PREFERENCES | WANTS_AIS_SENTENCES | WANTS_PLUGIN_MESSAGING);
 }
 
 bool nsk_pi::DeInit()
 {
-    m_n2k_listeners.clear();
+    m_listeners.clear();
     Unbind(EVT_NSK_N2K, &nsk_pi::HandleN2K, this);
+    Unbind(EVT_NSK_N0183, &nsk_pi::HandleN0183, this);
     SaveConfig();
     return true;
 }
@@ -155,9 +160,9 @@ void nsk_pi::SaveConfig()
     m_nsk.SaveConfig(GetDataDir().ToStdString() + "nsk.json");
 }
 
-void nsk_pi::SetNMEASentence(wxString& sentence)
+void nsk_pi::HandleN0183(ObservedEvt& ev)
 {
-    std::string stc = sentence.ToStdString();
+    std::string stc = GetN0183Payload(NMEA0183Id(""), ev);
     stc.erase(std::remove(stc.begin(), stc.end(), '\n'), stc.cend());
     stc.erase(std::remove(stc.begin(), stc.end(), '\r'), stc.cend());
     m_nsk.ProcessNMEASentence(stc);

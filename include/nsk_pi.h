@@ -54,10 +54,11 @@ private:
     wxString m_config_file;
 
     NSK m_nsk;
-    std::vector<std::shared_ptr<ObservableListener>> m_n2k_listeners;
+    std::vector<std::shared_ptr<ObservableListener>> m_listeners;
 
     /// Load the configuration from disk
     void LoadConfig();
+    void HandleN0183(ObservedEvt& ev);
     void HandleN2K(ObservedEvt& ev);
 
 public:
@@ -148,11 +149,6 @@ public:
     ///
     /// \param cs Color scheme
     void SetColorScheme(PI_ColorScheme cs) override;
-
-    /// Callback delivering NMEA messages from the core application
-    ///
-    /// \param sentence The NMEA 0183 message
-    void SetNMEASentence(wxString& sentence) override;
 
     /// Callback delivering NMEA AIS messages from the core application
     ///
