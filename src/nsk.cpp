@@ -1869,7 +1869,8 @@ void NSK::ProcessN2KMessage(unsigned long pgn,
 
     // Header (13 bytes), data, and CRC. The parser assumes all are present.
     if (payload.size() < 14 || payload[0] != 0x93
-        || payload.size() < static_cast<size_t>(payload[12]) + 14
+        || payload[12] > tN2kMsg::MaxDataLen
+        || payload.size() != static_cast<size_t>(payload[12]) + 14
         || pgn
             != static_cast<unsigned long>(
                 payload[3] | (payload[4] << 8) | (payload[5] << 16))) {

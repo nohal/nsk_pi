@@ -175,3 +175,25 @@ TEST_CASE("NMEA 2000 PGNs are listed and can be ignored")
     REQUIRE(converter.TotalN2KIgnored() == 1);
     REQUIRE(converter.SKTotal() == 0);
 }
+
+TEST_CASE("Oversized NMEA 2000 frames are rejected")
+{
+    NSK converter;
+    Document result;
+
+    auto oversized = std::vector<unsigned char>(269, 0);
+    oversized[0] = 0x93;
+    oversized[3] = 0x12;
+    oversized[4] = 0xf2;
+    oversized[5] = 0x01;
+    oversized[12] = 255;
+    converter.ProcessN2KMessage(127250, oversized, &result);
+
+    auto padded = oversized;
+    padded.resize(300);
+    padded[12] = 8;
+    converter.ProcessN2KMessage(127250, padded, &result);
+
+    REQUIRE(result.IsNull());
+    REQUIRE(converter.TotalN2KErrors() == 2);
+}
