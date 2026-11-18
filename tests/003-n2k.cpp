@@ -44,7 +44,7 @@ Document Convert(tN2kMsg& msg)
 {
     NSK converter;
     Document result;
-    converter.ProcessN2KMessage(msg.PGN, Frame(msg), &result);
+    converter.ProcessN2KMessage(Frame(msg), &result);
     return result;
 }
 }
@@ -139,18 +139,18 @@ TEST_CASE("Invalid and unsupported NMEA 2000 messages are ignored")
 {
     NSK converter;
     Document result;
-    converter.ProcessN2KMessage(129025, { 0x93 }, &result);
+    converter.ProcessN2KMessage({ 0x93 }, &result);
     REQUIRE(result.IsNull());
 
     tN2kMsg msg;
     msg.SetPGN(130310);
     msg.AddByte(0);
-    converter.ProcessN2KMessage(msg.PGN, Frame(msg), &result);
+    converter.ProcessN2KMessage(Frame(msg), &result);
     REQUIRE(result.IsNull());
 
     SetN2kPGN127250(
         msg, 1, N2kDoubleNA, N2kDoubleNA, N2kDoubleNA, N2khr_Unavailable);
-    converter.ProcessN2KMessage(msg.PGN, Frame(msg), &result);
+    converter.ProcessN2KMessage(Frame(msg), &result);
     REQUIRE(result.IsNull());
     REQUIRE(converter.N2KTotal() == 3);
     REQUIRE(converter.TotalN2KErrors() == 1);
@@ -169,7 +169,7 @@ TEST_CASE("NMEA 2000 PGNs are listed and can be ignored")
     tN2kMsg msg;
     SetN2kPGN129025(msg, -54.8, -68.3);
     Document result;
-    converter.ProcessN2KMessage(msg.PGN, Frame(msg), &result);
+    converter.ProcessN2KMessage(Frame(msg), &result);
 
     REQUIRE(result.IsNull());
     REQUIRE(converter.TotalN2KIgnored() == 1);
@@ -187,12 +187,12 @@ TEST_CASE("Oversized NMEA 2000 frames are rejected")
     oversized[4] = 0xf2;
     oversized[5] = 0x01;
     oversized[12] = 255;
-    converter.ProcessN2KMessage(127250, oversized, &result);
+    converter.ProcessN2KMessage(oversized, &result);
 
     auto padded = oversized;
     padded.resize(300);
     padded[12] = 8;
-    converter.ProcessN2KMessage(127250, padded, &result);
+    converter.ProcessN2KMessage(padded, &result);
 
     REQUIRE(result.IsNull());
     REQUIRE(converter.TotalN2KErrors() == 2);

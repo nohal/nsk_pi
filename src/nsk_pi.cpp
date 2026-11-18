@@ -171,10 +171,7 @@ void nsk_pi::SetAISSentence(wxString& sentence)
 void nsk_pi::HandleN2K(ObservedEvt& ev)
 {
     auto payload = GetN2000Payload(NMEA2000Id(0), ev);
-    if (payload.size() >= 6) {
-        unsigned long pgn = payload[3] | (payload[4] << 8) | (payload[5] << 16);
-        m_nsk.ProcessN2KMessage(pgn, payload);
-    }
+    m_nsk.ProcessN2KMessage(payload);
 }
 
 void nsk_pi::SetPluginMessage(wxString& message_id, wxString& message_body)

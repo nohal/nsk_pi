@@ -1855,7 +1855,7 @@ void NSK::ProcessNMEASentence(
     }
 }
 
-void NSK::ProcessN2KMessage(unsigned long pgn,
+void NSK::ProcessN2KMessage(
     const std::vector<unsigned char>& payload, rapidjson::Document* outdoc)
 {
     if (chrono::system_clock::now() - m_counters_start > 5s) {
@@ -1870,14 +1870,12 @@ void NSK::ProcessN2KMessage(unsigned long pgn,
     // Header (13 bytes), data, and CRC. The parser assumes all are present.
     if (payload.size() < 14 || payload[0] != 0x93
         || payload[12] > tN2kMsg::MaxDataLen
-        || payload.size() != static_cast<size_t>(payload[12]) + 14
-        || pgn
-            != static_cast<unsigned long>(
-                payload[3] | (payload[4] << 8) | (payload[5] << 16))) {
+        || payload.size() != static_cast<size_t>(payload[12]) + 14) {
         ++m_n2k_errors;
         return;
     }
 
+    unsigned long pgn = payload[3] | (payload[4] << 8) | (payload[5] << 16);
     auto known
         = m_known.find(known_sentence("PGN " + std::to_string(pgn), true));
     if (known != m_known.end() && !known->enabled) {

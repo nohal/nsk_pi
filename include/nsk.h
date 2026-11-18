@@ -386,11 +386,9 @@ public:
     void ProcessNMEASentence(
         const std::string& stc, rapidjson::Document* outdoc = nullptr);
     /// @brief Process a framed NMEA 2000 message
-    /// @param pgn Parameter Group Number
     /// @param payload OpenCPN NMEA 2000 payload
     /// @param outdoc Optional JSON document receiving the resulting delta
-    void ProcessN2KMessage(unsigned long pgn,
-        const std::vector<unsigned char>& payload,
+    void ProcessN2KMessage(const std::vector<unsigned char>& payload,
         rapidjson::Document* outdoc = nullptr);
     /// @brief Get the current rate of incoming NMEA sentences
     /// @return Sentences/second
