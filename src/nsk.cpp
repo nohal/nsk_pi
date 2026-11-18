@@ -1849,7 +1849,6 @@ void NSK::ProcessNMEASentence(
     } catch (...) {
         // std::cout << "Exception while processing " << sentence.c_str() <<
         // std::endl;
-        m_unknown.emplace(stc.substr(0, 6));
         ++m_nmea_errors;
         return;
     }

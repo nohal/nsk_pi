@@ -176,8 +176,6 @@ private:
     /// List of sentences received in the data feed, known to Marnav, but not
     /// implemented by NSK
     std::set<std::string> m_unimplemented;
-    /// List of sentences causing an exception while being processed by Marnav
-    std::set<std::string> m_unknown;
     /// List of sentences we are able to process + flag whether we want to
     std::set<known_sentence> m_known;
 
@@ -444,17 +442,6 @@ public:
         }
         return str;
     };
-    /// @brief Return the sentences that appeared in the data stream and caused
-    /// Marnav exceptions
-    /// @return String with one tag per line
-    std::string Unknown() const
-    {
-        std::string str = "";
-        for (auto s : m_unknown) {
-            str.append(s).append("\n");
-        }
-        return str;
-    };
     /// @brief Return the set of known sentences and processing settings
     /// @return set of talker+tags and their settings
     std::set<known_sentence>& Known() { return m_known; }
@@ -474,10 +461,10 @@ public:
     /// since start
     /// @return Number of sentences
     size_t TotalUnimplemented() { return m_unimplemented_count; };
-    /// @brief Return total number of sentences not supported by Marnav received
+    /// @brief Return total number of NMEA 0183 sentences that failed to parse
     /// since start
     /// @return Number of sentences
-    size_t TotalUnknown() { return m_nmea_errors; };
+    size_t TotalNMEAErrors() { return m_nmea_errors; };
     /// @brief Load configuration from file
     /// @param path Path to the JSON file with configuration
     void LoadConfig(const std::string& path);

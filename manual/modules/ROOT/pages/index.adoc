@@ -29,11 +29,10 @@ The dialog offers a basic performance statistics and allows disabling conversion
 
 image::preferences.png[Preferences dialog]
 
-1. Performance statistics
+1. Performance statistics, including the number of NMEA 0183 sentences and NMEA 2000 messages that failed to parse
 2. Known NMEA 0183 sentences being converted to Signal K deltas. Uncheck the checkbox to stop converting the particular message.
 3. NMEA 0183 sentences present in the feed, known to the MarNav library, but not yet implemented by the NSK plugin
-4. NMEA 0183 sentences not recognized by the MarNav library
-5. If you click the `OK` button, the settings for the sentences are persisted. On `Cancel` the configuration is reverted to it's previous state.
+4. If you click the `OK` button, the settings for the sentences are persisted. On `Cancel` the configuration is reverted to it's previous state.
 
 === Extending the plugin
 

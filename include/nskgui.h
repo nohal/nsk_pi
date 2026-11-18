@@ -36,8 +36,6 @@ protected:
     wxCheckListBox* m_clKnown;
     wxTextCtrl* m_tUnimplemented;
     wxStaticText* m_stTotalUnimplemented;
-    wxTextCtrl* m_tUnknown;
-    wxStaticText* m_stTotalUnknown;
     wxStdDialogButtonSizer* m_sdbSizerButtons;
     wxButton* m_sdbSizerButtonsOK;
     wxButton* m_sdbSizerButtonsCancel;
@@ -56,7 +54,7 @@ public:
     NSKPreferencesDialog(wxWindow* parent, wxWindowID id = wxID_ANY,
         const wxString& title = wxEmptyString,
         const wxPoint& pos = wxDefaultPosition,
-        const wxSize& size = wxSize(700, 450),
+        const wxSize& size = wxSize(560, 400),
         long style = wxDEFAULT_DIALOG_STYLE);
 
     ~NSKPreferencesDialog();

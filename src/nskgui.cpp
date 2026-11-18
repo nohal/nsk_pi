@@ -64,22 +64,6 @@ NSKPreferencesDialog::NSKPreferencesDialog(wxWindow* parent, wxWindowID id,
 
     bSizerSentences->Add(sbSizerUnimplemented, 1, wxEXPAND, 5);
 
-    wxStaticBoxSizer* sbSizerUnknown;
-    sbSizerUnknown = new wxStaticBoxSizer(
-        new wxStaticBox(this, wxID_ANY, _("Unknown")), wxVERTICAL);
-
-    m_tUnknown = new wxTextCtrl(sbSizerUnknown->GetStaticBox(), wxID_ANY,
-        wxEmptyString, wxDefaultPosition, wxDefaultSize,
-        wxTE_MULTILINE | wxTE_READONLY);
-    sbSizerUnknown->Add(m_tUnknown, 1, wxALL | wxEXPAND, 5);
-
-    m_stTotalUnknown = new wxStaticText(sbSizerUnknown->GetStaticBox(),
-        wxID_ANY, _("XXX"), wxDefaultPosition, wxDefaultSize, 0);
-    m_stTotalUnknown->Wrap(-1);
-    sbSizerUnknown->Add(m_stTotalUnknown, 0, wxALL, 5);
-
-    bSizerSentences->Add(sbSizerUnknown, 1, wxEXPAND, 5);
-
     bSizerMain->Add(bSizerSentences, 1, wxEXPAND, 5);
 
     m_sdbSizerButtons = new wxStdDialogButtonSizer();
