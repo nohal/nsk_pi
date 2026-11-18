@@ -143,6 +143,8 @@ TEST_CASE("NMEA 2000 wind mappings follow the reference")
 
     SetN2kPGN130306(msg, 1, 4.8, 0.6, N2kWind_True_boat);
     auto boat = Convert(msg);
+    REQUIRE(FindValue(boat, "environment.wind.speedOverGround")->GetDouble()
+        == Approx(4.8));
     REQUIRE(FindValue(boat, "environment.wind.angleTrueGround")->GetDouble()
         == Approx(0.6));
 

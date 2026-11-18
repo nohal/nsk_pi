@@ -1998,8 +1998,8 @@ void NSK::ProcessN2KMessage(
             }
         } else if (reference == N2kWind_True_boat) {
             if (!N2kIsNA(speed)) {
-                AddNumber(
-                    values, allocator, "environment.wind.speedTrue", speed);
+                AddNumber(values, allocator, "environment.wind.speedOverGround",
+                    speed);
             }
             if (!N2kIsNA(angle)) {
                 AddNumber(values, allocator, "environment.wind.angleTrueGround",
