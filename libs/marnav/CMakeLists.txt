@@ -54,12 +54,9 @@ else()
   set(ENABLE_EXAMPLES
       FALSE
       CACHE BOOL "Build examples" FORCE)
-  add_subdirectory(${marnav_src_dir} marnav_bld)
+  add_subdirectory(${marnav_src_dir} marnav_bld EXCLUDE_FROM_ALL)
 
   # Link available libraries
   #
   target_link_libraries(_ocpn_marnav_if INTERFACE marnav::marnav)
-  if(TARGET marnav-io)
-    add_dependencies(${PACKAGE_NAME} marnav-io)
-  endif()
 endif()
