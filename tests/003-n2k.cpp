@@ -133,6 +133,26 @@ TEST_CASE("NMEA 2000 wind mappings follow the reference")
         == Approx(5.1));
     REQUIRE(FindValue(ground, "environment.wind.directionTrue")->GetDouble()
         == Approx(0.7));
+
+    SetN2kPGN130306(msg, 1, 4.3, 5.8, N2kWind_True_water);
+    auto water = Convert(msg);
+    REQUIRE(FindValue(water, "environment.wind.speedTrue")->GetDouble()
+        == Approx(4.3));
+    REQUIRE(FindValue(water, "environment.wind.angleTrueWater")->GetDouble()
+        == Approx(5.8 - 2 * 3.14159265358979323846));
+
+    SetN2kPGN130306(msg, 1, 4.8, 0.6, N2kWind_True_boat);
+    auto boat = Convert(msg);
+    REQUIRE(FindValue(boat, "environment.wind.angleTrueGround")->GetDouble()
+        == Approx(0.6));
+
+    SetN2kPGN130306(msg, 1, 7.2, 0.4, N2kWind_Magnetic);
+    auto magnetic = Convert(msg);
+    REQUIRE(FindValue(magnetic, "environment.wind.speedOverGround")->GetDouble()
+        == Approx(7.2));
+    REQUIRE(
+        FindValue(magnetic, "environment.wind.directionMagnetic")->GetDouble()
+        == Approx(0.4));
 }
 
 TEST_CASE("Invalid and unsupported NMEA 2000 messages are ignored")

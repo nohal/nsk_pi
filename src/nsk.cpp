@@ -2002,6 +2002,15 @@ void NSK::ProcessN2KMessage(
                     values, allocator, "environment.wind.speedTrue", speed);
             }
             if (!N2kIsNA(angle)) {
+                AddNumber(values, allocator, "environment.wind.angleTrueGround",
+                    angle <= PI ? angle : angle - 2 * PI);
+            }
+        } else if (reference == N2kWind_True_water) {
+            if (!N2kIsNA(speed)) {
+                AddNumber(
+                    values, allocator, "environment.wind.speedTrue", speed);
+            }
+            if (!N2kIsNA(angle)) {
                 AddNumber(values, allocator, "environment.wind.angleTrueWater",
                     angle <= PI ? angle : angle - 2 * PI);
             }
@@ -2014,9 +2023,15 @@ void NSK::ProcessN2KMessage(
                 AddNumber(
                     values, allocator, "environment.wind.directionTrue", angle);
             }
-        } else if (reference == N2kWind_Magnetic && !N2kIsNA(angle)) {
-            AddNumber(
-                values, allocator, "environment.wind.directionMagnetic", angle);
+        } else if (reference == N2kWind_Magnetic) {
+            if (!N2kIsNA(speed)) {
+                AddNumber(values, allocator, "environment.wind.speedOverGround",
+                    speed);
+            }
+            if (!N2kIsNA(angle)) {
+                AddNumber(values, allocator,
+                    "environment.wind.directionMagnetic", angle);
+            }
         }
         break;
     }
