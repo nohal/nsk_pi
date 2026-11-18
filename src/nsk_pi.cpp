@@ -39,6 +39,8 @@
 
 PLUGIN_BEGIN_NAMESPACE
 
+wxDEFINE_EVENT(EVT_NSK_N2K, ObservedEvt);
+
 #define kn2ms(x) (0.51444444444 * (x))
 
 using namespace rapidjson;
@@ -84,12 +86,20 @@ int nsk_pi::Init()
     wxString _svg_nsk = GetDataDir() + "nsk_pi.svg";
     AddLocaleCatalog(_T("opencpn-nsk_pi"));
 
+    Bind(EVT_NSK_N2K, &nsk_pi::HandleN2K, this);
+    for (int pgn : { 127250, 128259, 128267, 129025, 129026, 130306 }) {
+        m_n2k_listeners.push_back(
+            GetListener(NMEA2000Id(pgn), EVT_NSK_N2K, this));
+    }
+
     return (WANTS_PREFERENCES | WANTS_NMEA_SENTENCES | WANTS_AIS_SENTENCES
         | WANTS_PLUGIN_MESSAGING);
 }
 
 bool nsk_pi::DeInit()
 {
+    m_n2k_listeners.clear();
+    Unbind(EVT_NSK_N2K, &nsk_pi::HandleN2K, this);
     SaveConfig();
     return true;
 }
@@ -115,12 +125,13 @@ wxString nsk_pi::GetCommonName() { return _("NSK"); }
 
 wxString nsk_pi::GetShortDescription()
 {
-    return _("NMEA 0183 to SignalK converter PlugIn for OpenCPN");
+    return _("NMEA 0183 and NMEA 2000 to SignalK converter PlugIn for OpenCPN");
 }
 
 wxString nsk_pi::GetLongDescription()
 {
-    return _("Simple converter of NMEA 0183 messages to SignalK deltas.\n");
+    return _("Simple converter of NMEA 0183 and NMEA 2000 messages to SignalK "
+             "deltas.\n");
 }
 
 void nsk_pi::ShowPreferencesDialog(wxWindow* parent)
@@ -155,6 +166,15 @@ void nsk_pi::SetNMEASentence(wxString& sentence)
 void nsk_pi::SetAISSentence(wxString& sentence)
 {
     // TODO
+}
+
+void nsk_pi::HandleN2K(ObservedEvt& ev)
+{
+    auto payload = GetN2000Payload(NMEA2000Id(0), ev);
+    if (payload.size() >= 6) {
+        unsigned long pgn = payload[3] | (payload[4] << 8) | (payload[5] << 16);
+        m_nsk.ProcessN2KMessage(pgn, payload);
+    }
 }
 
 void nsk_pi::SetPluginMessage(wxString& message_id, wxString& message_body)

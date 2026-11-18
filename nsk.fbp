@@ -95,7 +95,7 @@
                         <property name="gripper">0</property>
                         <property name="hidden">0</property>
                         <property name="id">wxID_ANY</property>
-                        <property name="label">Input data rate: %d sentences/s, output data rate: %d deltas/s</property>
+                        <property name="label">Input rate: NMEA 0183 sentences/s, NMEA 2000 messages/s; output deltas/s</property>
                         <property name="markup">0</property>
                         <property name="max_size"></property>
                         <property name="maximize_button">0</property>
@@ -157,7 +157,7 @@
                         <property name="gripper">0</property>
                         <property name="hidden">0</property>
                         <property name="id">wxID_ANY</property>
-                        <property name="label">Input total: %d, Deltas total: %d</property>
+                        <property name="label">Totals: NMEA 0183, NMEA 2000; deltas</property>
                         <property name="markup">0</property>
                         <property name="max_size"></property>
                         <property name="maximize_button">0</property>
@@ -201,7 +201,7 @@
                             <property name="proportion">2</property>
                             <object class="wxStaticBoxSizer" expanded="0">
                                 <property name="id">wxID_ANY</property>
-                                <property name="label">Known (uncheck to ignore)</property>
+                                <property name="label">Supported inputs (uncheck to ignore)</property>
                                 <property name="minimum_size"></property>
                                 <property name="name">sbSizerKnown</property>
                                 <property name="orient">wxVERTICAL</property>

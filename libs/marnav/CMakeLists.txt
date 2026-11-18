@@ -23,11 +23,7 @@ if(EXISTS /app/bin)
   file(GLOB _mnav_path /app/extensions/*/lib/libmarnav.a)
   set_property(TARGET _mnav_lib PROPERTY IMPORTED_LOCATION ${_mnav_path})
 
-  add_library(_mnav_io_lib STATIC IMPORTED)
-  file(GLOB _mnav_io_path /app/extensions/*/lib/libmarnav-io.a)
-  set_property(TARGET _mnav_io_lib PROPERTY IMPORTED_LOCATION ${_mnav_io_path})
-
-  target_link_libraries(_ocpn_marnav_if INTERFACE _mnav_lib _mnav_io_lib)
+  target_link_libraries(_ocpn_marnav_if INTERFACE _mnav_lib)
 
   string(TOLOWER ${PACKAGE_NAME} _lc_pkg_name)
   set(mnav_incl_path /app/extensions/${_lc_pkg_name}/include)
@@ -48,6 +44,7 @@ else()
   set(BUILD_SHARED_LIBS
       FALSE
       CACHE BOOL "Build shared libs" FORCE)
+  set(BUILD_SHARED_LIBS FALSE)
   set(ENABLE_TESTS
       FALSE
       CACHE BOOL "Enable tests" FORCE)
@@ -62,7 +59,7 @@ else()
   # Link available libraries
   #
   target_link_libraries(_ocpn_marnav_if INTERFACE marnav::marnav)
-  if(TARGET marnav::marnav-io)
-    target_link_libraries(_ocpn_marnav_if INTERFACE marnav::marnav-io)
+  if(TARGET marnav-io)
+    add_dependencies(${PACKAGE_NAME} marnav-io)
   endif()
 endif()

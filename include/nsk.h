@@ -138,6 +138,8 @@ class NSK {
 private:
     /// Number of NMEA0183 sentences received
     size_t m_nmea_received;
+    /// Number of NMEA 2000 messages received
+    size_t m_n2k_received;
     /// Number of SignalK deltas produced
     size_t m_sk_produced;
     /// Number of exceptions while processing the NMEA0183 messages
@@ -145,6 +147,9 @@ private:
     /// Number of sentences ignored due to configuration
     size_t m_ignored;
     size_t m_nmea_received_total;
+    size_t m_n2k_received_total;
+    size_t m_n2k_errors;
+    size_t m_n2k_ignored;
     size_t m_sk_produced_total;
     size_t m_unimplemented_count;
     /// Start timestamp of the sentence counters
@@ -156,6 +161,13 @@ private:
     std::set<std::string> m_unknown;
     /// List of sentences we are able to process + flag whether we want to
     std::set<known_sentence> m_known;
+
+    void AddKnownN2K()
+    {
+        for (auto pgn : { 127250, 128259, 128267, 129025, 129026, 130306 }) {
+            m_known.emplace("PGN " + std::to_string(pgn), true);
+        }
+    }
 
     /// @brief Process the GGA NMEA0183 sentence
     /// @param s sentence pointer
@@ -350,24 +362,47 @@ public:
     /// @brief Constructor
     NSK()
         : m_nmea_received(0)
+        , m_n2k_received(0)
         , m_sk_produced(0)
         , m_nmea_errors(0)
         , m_ignored(0)
         , m_nmea_received_total(0)
+        , m_n2k_received_total(0)
+        , m_n2k_errors(0)
+        , m_n2k_ignored(0)
         , m_sk_produced_total(0)
         , m_unimplemented_count(0)
-        , m_counters_start(std::chrono::system_clock::now()) { };
+        , m_counters_start(std::chrono::system_clock::now())
+    {
+        AddKnownN2K();
+    };
     /// @brief Process NMEA 0183 sentence string
     /// @param stc NMEA 0183 sentence without the trailing "\r\n"
     /// @param outdoc Pointer to a JSON document to which the resulting JSON
     /// Document is copied (usefull for testing)
     void ProcessNMEASentence(
         const std::string& stc, rapidjson::Document* outdoc = nullptr);
+    /// @brief Process a framed NMEA 2000 message
+    /// @param pgn Parameter Group Number
+    /// @param payload OpenCPN NMEA 2000 payload
+    /// @param outdoc Optional JSON document receiving the resulting delta
+    void ProcessN2KMessage(unsigned long pgn,
+        const std::vector<unsigned char>& payload,
+        rapidjson::Document* outdoc = nullptr);
     /// @brief Get the current rate of incoming NMEA sentences
     /// @return Sentences/second
     size_t NMEARate()
     {
         return 1000.0 * m_nmea_received
+            / std::chrono::duration_cast<std::chrono::milliseconds>(
+                chrono::system_clock::now() - m_counters_start)
+                  .count();
+    };
+    /// @brief Get the current rate of incoming NMEA 2000 messages
+    /// @return Messages/second
+    size_t N2KRate()
+    {
+        return 1000.0 * m_n2k_received
             / std::chrono::duration_cast<std::chrono::milliseconds>(
                 chrono::system_clock::now() - m_counters_start)
                   .count();
@@ -409,6 +444,12 @@ public:
     /// @brief Return total number of NMEA 0183 sentences received since start
     /// @return Number of sentences
     size_t NMEATotal() { return m_nmea_received_total; };
+    /// @brief Return total NMEA 2000 messages received since start
+    size_t N2KTotal() { return m_n2k_received_total; };
+    /// @brief Return malformed NMEA 2000 messages received since start
+    size_t TotalN2KErrors() { return m_n2k_errors; };
+    /// @brief Return supported NMEA 2000 messages without usable values
+    size_t TotalN2KIgnored() { return m_n2k_ignored; };
     /// @brief Return total number of SignalK deltas produced since start
     /// @return Number of deltas
     size_t SKTotal() { return m_sk_produced_total; };

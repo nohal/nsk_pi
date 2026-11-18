@@ -5,7 +5,9 @@ image::nsk_pi_icon.png[NSK logo]
 
 === Features
 
-The plugin provides a simple converter of NMEA 0183 messages to https://signalk.org[Signal K] delta messages.
+The plugin provides a simple converter of NMEA 0183 messages and selected NMEA 2000 PGNs to https://signalk.org[Signal K] delta messages.
+
+Supported NMEA 2000 PGNs are 127250 (heading), 128259 (speed), 128267 (depth), 129025 (position), 129026 (COG/SOG), and 130306 (wind). Other PGNs are currently ignored.
 
 The main purpose of this plugin is to serve as a companion to the https://nohal.github.io/dashboardsk_pi/[DashboardSK] plugin in systems where Signal K data is not normally available. A real Signal K server does and always will provide a much richer feature set and is the preferable way to integrate the onboard systems and serve the data to OpenCPN, it's DashboardSK plugin or any other client.
 
@@ -17,7 +19,7 @@ The main purpose of this plugin is to serve as a companion to the https://nohal.
 * Find the `NSK`` tile in the list of available plugins and click on it
 * In the presented dialog click the `Install` button
 
-Once the plugin is enabled, it immediately starts converting all the NMEA 0183 sentences it knows to Signal K delta messages and passes them to the OpenCPN core application where they are forwarded to other plugins.
+Once the plugin is enabled, it immediately starts converting all the supported NMEA 0183 sentences and NMEA 2000 PGNs to Signal K delta messages and passes them to the OpenCPN core application where they are forwarded to other plugins.
 
 === Configuration
 

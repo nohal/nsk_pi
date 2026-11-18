@@ -44,6 +44,7 @@
 #endif
 
 #include "nsk.h"
+#include <N2KParser.h>
 #include <marnav/ais/message_01.hpp>
 #include <marnav/ais/message_04.hpp>
 #include <marnav/ais/message_05.hpp>
@@ -1631,6 +1632,7 @@ void NSK::ProcessNMEASentence(
     if (chrono::system_clock::now() - m_counters_start > 5s) {
         m_counters_start = chrono::system_clock::now();
         m_nmea_received = 0;
+        m_n2k_received = 0;
         m_sk_produced = 0;
     }
     ++m_nmea_received;
@@ -1853,6 +1855,209 @@ void NSK::ProcessNMEASentence(
     }
 }
 
+void NSK::ProcessN2KMessage(unsigned long pgn,
+    const std::vector<unsigned char>& payload, rapidjson::Document* outdoc)
+{
+    if (chrono::system_clock::now() - m_counters_start > 5s) {
+        m_counters_start = chrono::system_clock::now();
+        m_nmea_received = 0;
+        m_n2k_received = 0;
+        m_sk_produced = 0;
+    }
+    ++m_n2k_received;
+    ++m_n2k_received_total;
+
+    // Header (13 bytes), data, and CRC. The parser assumes all are present.
+    if (payload.size() < 14 || payload[0] != 0x93
+        || payload.size() < static_cast<size_t>(payload[12]) + 14
+        || pgn
+            != static_cast<unsigned long>(
+                payload[3] | (payload[4] << 8) | (payload[5] << 16))) {
+        ++m_n2k_errors;
+        return;
+    }
+
+    auto known
+        = m_known.find(known_sentence("PGN " + std::to_string(pgn), true));
+    if (known != m_known.end() && !known->enabled) {
+        ++m_n2k_ignored;
+        return;
+    }
+
+    auto data = payload;
+    Document d;
+    d.SetObject();
+    auto& allocator = d.GetAllocator();
+    Value values(kArrayType);
+    bool parsed = false;
+    unsigned char sid;
+
+    switch (pgn) {
+    case 127250: {
+        double heading, deviation, variation;
+        tN2kHeadingReference reference;
+        parsed = ParseN2kPGN127250(
+            data, sid, heading, deviation, variation, reference);
+        if (parsed && !N2kIsNA(heading)) {
+            if (reference == N2khr_true) {
+                AddNumber(values, allocator, "navigation.headingTrue", heading);
+            } else if (reference == N2khr_magnetic) {
+                AddNumber(
+                    values, allocator, "navigation.headingMagnetic", heading);
+            }
+        }
+        if (parsed && !N2kIsNA(variation)) {
+            AddNumber(
+                values, allocator, "navigation.magneticVariation", variation);
+        }
+        if (parsed && !N2kIsNA(deviation)) {
+            AddNumber(
+                values, allocator, "navigation.magneticDeviation", deviation);
+        }
+        break;
+    }
+    case 128259: {
+        double water, ground;
+        tN2kSpeedWaterReferenceType reference;
+        parsed = ParseN2kPGN128259(data, sid, water, ground, reference);
+        if (parsed && !N2kIsNA(water)) {
+            AddNumber(values, allocator, "navigation.speedThroughWater", water);
+        }
+        if (parsed && !N2kIsNA(ground)) {
+            AddNumber(values, allocator, "navigation.speedOverGround", ground);
+        }
+        break;
+    }
+    case 128267: {
+        double depth, offset, range;
+        parsed = ParseN2kPGN128267(data, sid, depth, offset, range);
+        if (parsed && !N2kIsNA(depth)) {
+            AddNumber(
+                values, allocator, "environment.depth.belowTransducer", depth);
+        }
+        if (parsed && !N2kIsNA(offset) && offset > 0) {
+            AddNumber(values, allocator,
+                "environment.depth.surfaceToTransducer", offset);
+            if (!N2kIsNA(depth)) {
+                AddNumber(values, allocator, "environment.depth.belowSurface",
+                    depth + offset);
+            }
+        } else if (parsed && !N2kIsNA(offset) && offset < 0) {
+            AddNumber(values, allocator, "environment.depth.transducerToKeel",
+                -offset);
+            if (!N2kIsNA(depth)) {
+                AddNumber(values, allocator, "environment.depth.belowKeel",
+                    depth + offset);
+            }
+        }
+        break;
+    }
+    case 129025: {
+        double latitude, longitude;
+        parsed = ParseN2kPGN129025(data, latitude, longitude);
+        if (parsed && !N2kIsNA(latitude) && !N2kIsNA(longitude)
+            && latitude >= -90 && latitude <= 90 && longitude >= -180
+            && longitude <= 180) {
+            AddPosition(
+                values, allocator, "navigation.position", latitude, longitude);
+        }
+        break;
+    }
+    case 129026: {
+        double course, speed;
+        tN2kHeadingReference reference;
+        parsed = ParseN2kPGN129026(data, sid, reference, course, speed);
+        if (parsed && !N2kIsNA(speed)) {
+            AddNumber(values, allocator, "navigation.speedOverGround", speed);
+        }
+        if (parsed && !N2kIsNA(course)) {
+            if (reference == N2khr_true) {
+                AddNumber(values, allocator, "navigation.courseOverGroundTrue",
+                    course);
+            } else if (reference == N2khr_magnetic) {
+                AddNumber(values, allocator,
+                    "navigation.courseOverGroundMagnetic", course);
+            }
+        }
+        break;
+    }
+    case 130306: {
+        double speed, angle;
+        tN2kWindReference reference;
+        parsed = ParseN2kPGN130306(data, sid, speed, angle, reference);
+        if (!parsed) {
+            break;
+        }
+        if (reference == N2kWind_Apparent) {
+            if (!N2kIsNA(speed)) {
+                AddNumber(
+                    values, allocator, "environment.wind.speedApparent", speed);
+            }
+            if (!N2kIsNA(angle)) {
+                AddNumber(values, allocator, "environment.wind.angleApparent",
+                    angle <= PI ? angle : angle - 2 * PI);
+            }
+        } else if (reference == N2kWind_True_boat) {
+            if (!N2kIsNA(speed)) {
+                AddNumber(
+                    values, allocator, "environment.wind.speedTrue", speed);
+            }
+            if (!N2kIsNA(angle)) {
+                AddNumber(values, allocator, "environment.wind.angleTrueWater",
+                    angle <= PI ? angle : angle - 2 * PI);
+            }
+        } else if (reference == N2kWind_True_North) {
+            if (!N2kIsNA(speed)) {
+                AddNumber(values, allocator, "environment.wind.speedOverGround",
+                    speed);
+            }
+            if (!N2kIsNA(angle)) {
+                AddNumber(
+                    values, allocator, "environment.wind.directionTrue", angle);
+            }
+        } else if (reference == N2kWind_Magnetic && !N2kIsNA(angle)) {
+            AddNumber(
+                values, allocator, "environment.wind.directionMagnetic", angle);
+        }
+        break;
+    }
+    default:
+        return;
+    }
+
+    if (!parsed) {
+        ++m_n2k_errors;
+        return;
+    }
+    if (values.Empty()) {
+        ++m_n2k_ignored;
+        return;
+    }
+
+    Value source(kObjectType);
+    source.AddMember("label", "NSK", allocator);
+    source.AddMember("type", "NMEA2000", allocator);
+    source.AddMember("pgn", static_cast<uint64_t>(pgn), allocator);
+    source.AddMember("src", payload[7], allocator);
+    Value update(kObjectType);
+    update.AddMember("source", source, allocator);
+    update.AddMember("timestamp", currentISO8601TimeUTC(), allocator);
+    update.AddMember("values", values, allocator);
+    Value updates(kArrayType);
+    updates.PushBack(update, allocator);
+    d.AddMember("updates", updates, allocator);
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+    ++m_sk_produced;
+    ++m_sk_produced_total;
+    if (outdoc != nullptr) {
+        outdoc->Parse<0>(buffer.GetString());
+    }
+    SendPluginMessage("NSK_PI_SIGNALK", buffer.GetString());
+}
+
 void NSK::LoadConfig(const std::string& path)
 {
     std::ifstream ifs { path };
@@ -1868,8 +2073,9 @@ void NSK::LoadConfig(const std::string& path)
     d.ParseStream(isw);
     if (d.HasMember("known_sentences") && d["known_sentences"].IsArray()) {
         m_known.clear();
+        AddKnownN2K();
         for (auto& stc : d["known_sentences"].GetArray()) {
-            m_known.emplace(known_sentence(
+            UpdateKnown(known_sentence(
                 stc["talker_tag"].GetString(), stc["enabled"].GetBool()));
         }
     }
